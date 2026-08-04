@@ -1,7 +1,7 @@
 "use client"
 
-import { signIn } from "@/lib/auth"
 import { useState } from "react"
+import { loginAction } from "@/lib/actions/auth"
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
@@ -10,12 +10,8 @@ export default function LoginPage() {
     <div className="flex justify-center items-center h-screen">
       <form
         action={async (formData) => {
-          try {
-            await signIn("credentials", formData)
-          } catch (error) {
-            setError("Credenciales incorrectas o error de inicio de sesión.")
-            console.error("Login error:", error)
-          }
+          const result = await loginAction(undefined, formData)
+          if (result) setError(result)
         }}
         className="p-8 border rounded shadow-md"
       >
