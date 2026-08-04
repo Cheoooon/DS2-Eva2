@@ -1,6 +1,8 @@
 "use client"
 
-import { useForm } from "react-hook-form"
+import { Button } from "./ui/Button"
+import { Input } from "./ui/Input"
+
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { reservationSchema } from "@/lib/actions/reservation"
@@ -34,17 +36,16 @@ export default function ReservationForm({ tableId, userId }: { tableId: string, 
       
       <div className="mb-4">
         <label>Inicio:</label>
-        <input type="datetime-local" {...register("startTime")} className="block border p-1" />
+        <Input type="datetime-local" {...register("startTime")} />
         {errors.startTime && <p className="text-red-500">{errors.startTime.message}</p>}
       </div>
 
       <div className="mb-4">
         <label>Fin:</label>
-        <input type="datetime-local" {...register("endTime")} className="block border p-1" />
+        <Input type="datetime-local" {...register("endTime")} />
         {errors.endTime && <p className="text-red-500">{errors.endTime.message}</p>}
       </div>
 
-      <button type="submit" className="p-2 bg-blue-500 text-white rounded">Reservar</button>
-    </form>
+      <Button type="submit">Reservar</Button>
   )
 }
