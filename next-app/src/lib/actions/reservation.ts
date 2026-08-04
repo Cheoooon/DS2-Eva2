@@ -10,6 +10,19 @@ export async function createReservation(data: {
   startTime: Date, 
   endTime: Date 
 }) {
+  const existing = await prisma.reservation.findFirst({
+    where: {
+      tableId: data.tableId,
+      status: { not: Status.CANCELLED },
+      startTime: { lt: data.endTime },
+      endTime: { gt: data.startTime }
+    }
+  });
+
+  if (existing) {
+    throw new Error("Mesa no disponible en este horario.");
+  }
+
   await prisma.reservation.create({ data })
   revalidatePath("/reservations")
 }
