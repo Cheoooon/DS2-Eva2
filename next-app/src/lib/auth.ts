@@ -17,4 +17,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
+  callbacks: {
+    async session({ session, user }) {
+      if (session.user) {
+        const userData = await prisma.user.findUnique({ where: { id: user.id } })
+        session.user.role = userData?.role || "CLIENT"
+      }
+      return session
+    }
+  },
 })
