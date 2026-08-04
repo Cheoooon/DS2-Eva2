@@ -1,26 +1,31 @@
-import prisma from "../src/lib/prisma";
+import { prisma } from "../src/lib/prisma";
+import bcrypt from "bcrypt";
 
 async function main() {
-  const users = await Promise.all([
-    prisma.user.upsert({
-      where: { email: "alice@prisma.io" },
-      update: { name: "Alice" },
-      create: {
-        email: "alice@prisma.io",
-        name: "Alice",
-      },
-    }),
-    prisma.user.upsert({
-      where: { email: "bob@prisma.io" },
-      update: { name: "Bob" },
-      create: {
-        email: "bob@prisma.io",
-        name: "Bob",
-      },
-    }),
-  ]);
+  await prisma.user.deleteMany();
 
-  console.log(`Seeded ${users.length} users.`);
+  const passwordHash = await bcrypt.hash("password123", 10);
+  console.log("Password hash:", passwordHash);
+
+  await prisma.user.create({
+    data: { 
+      email: "admin@sabor.com", 
+      name: "Admin", 
+      role: "ADMIN", 
+      password: passwordHash 
+    },
+  });
+
+  await prisma.user.create({
+    data: { 
+      email: "staff@sabor.com", 
+      name: "Staff", 
+      role: "STAFF", 
+      password: passwordHash 
+    },
+  });
+
+  console.log("Seeded admin and staff users.");
 }
 
 main()

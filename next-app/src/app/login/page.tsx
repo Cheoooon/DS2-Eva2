@@ -1,6 +1,6 @@
 import { signIn } from "@/lib/auth"
 
-export default function LoginPage() {
+export default async function LoginPage() {
   return (
     <div className="flex justify-center items-center h-screen">
       <form
