@@ -1,6 +1,6 @@
-# Fase 4: Roles & Interfaz (Admin/Staff/Client)
+# Fase 4: Validaciones, Diseño & Polish
 
-- [ ] Implementar middleware para protección de rutas según rol.
-- [ ] Desarrollar UI para Cliente (Panel de reservas).
-- [ ] Desarrollar UI para Staff (Gestión de mesas/reservas).
-- [ ] Desarrollar UI para Admin (Configuración, usuarios).
+- [ ] Implementar validaciones de formularios (Zod + React Hook Form).
+- [ ] Aplicar diseño con Tailwind CSS.
+- [ ] Crear componentes UI reutilizables (Botones, Inputs, Cards).
+- [ ] Refinar experiencia de usuario (Loading states, Error handling).

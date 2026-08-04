@@ -1,6 +1,6 @@
-# Fase 3: Migración a PostgreSQL & Real-time
+# Fase 3: Auth UI & Dashboard
 
-- [ ] Configurar instancia de PostgreSQL.
-- [ ] Migrar esquema de Prisma de SQLite a PostgreSQL.
-- [ ] Implementar Real-time (Supabase o Socket.io).
-- [ ] Actualizar hooks/servicios para escuchar cambios en tiempo real.
+- [ ] Implementar página de Login/Registro.
+- [ ] Implementar Dashboard (Panel principal según rol).
+- [ ] Configurar navegación protegida.
+- [ ] Integrar NextAuth en UI (Formulario Login, Botón Logout).
