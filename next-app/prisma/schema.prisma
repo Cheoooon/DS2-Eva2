@@ -7,14 +7,47 @@ datasource db {
   provider = "sqlite"
 }
 
+enum Role {
+  CLIENT
+  STAFF
+  ADMIN
+}
+
+enum Status {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
 model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String?
+  role         Role          @default(CLIENT)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  accounts     Account[]
+  sessions     Session[]
+  reservations Reservation[]
+}
+
+model Table {
+  id           String        @id @default(cuid())
+  capacity     Int
+  active       Boolean       @default(true)
+  reservations Reservation[]
+}
+
+model Reservation {
   id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  accounts  Account[]
-  sessions  Session[]
+  userId    String
+  tableId   String
+  startTime DateTime
+  endTime   DateTime
+  status    Status   @default(PENDING)
+  user      User     @relation(fields: [userId], references: [id])
+  table     Table    @relation(fields: [tableId], references: [id])
 }
 
 model Account {
