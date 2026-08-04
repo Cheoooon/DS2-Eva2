@@ -54,6 +54,12 @@ model Reservation {
   deletedAt DateTime?
 }
 
+model SystemConfig {
+  id                    String @id @default("config")
+  cancellationWindow    Int    @default(24) // horas
+  notificationRetention Int    @default(30) // días
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
