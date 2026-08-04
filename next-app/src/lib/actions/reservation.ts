@@ -3,13 +3,18 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { Status } from "@prisma/client"
+import { z } from "zod"
 
-export async function createReservation(data: { 
-  userId: string, 
-  tableId: string, 
-  startTime: Date, 
-  endTime: Date 
-}) {
+export const reservationSchema = z.object({
+  userId: z.string().cuid(),
+  tableId: z.string().cuid(),
+  startTime: z.coerce.date(),
+  endTime: z.coerce.date(),
+})
+
+export async function createReservation(rawData: unknown) {
+  const data = reservationSchema.parse(rawData)
+
   const existing = await prisma.reservation.findFirst({
     where: {
       tableId: data.tableId,
