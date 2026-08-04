@@ -3,23 +3,20 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { Role } from "@prisma/client"
-import { z } from "zod"
-
 export async function getUsers() {
-  return await prisma.user.findMany()
+  return await prisma.user.findMany({ where: { deletedAt: null } })
 }
+
 
 export async function updateUserRole(id: string, role: Role) {
   await prisma.user.update({
     where: { id },
     data: { role }
   })
-  revalidatePath("/admin")
-}
-
 export async function deleteUser(id: string) {
-  await prisma.user.delete({
-    where: { id }
+  await prisma.user.update({
+    where: { id },
+    data: { deletedAt: new Date() }
   })
   revalidatePath("/admin")
 }

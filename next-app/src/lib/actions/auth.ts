@@ -3,18 +3,15 @@
 import { signIn } from "@/lib/auth"
 import { AuthError } from "next-auth"
 
-export async function loginAction(prevState: string | undefined, formData: FormData) {
+export async function loginAction(formData: FormData) {
   try {
     await signIn("credentials", formData)
   } catch (error) {
     if (error instanceof AuthError) {
-      return "Credenciales inválidas."
+      // Capturamos específicamente errores de autenticación
+      return "Credenciales inválidas o usuario no encontrado."
     }
-    // Si es un error de redirección de NextAuth, lo dejamos pasar
-    if ((error as any)?.digest?.includes('NEXT_REDIRECT')) {
-        throw error
-    }
-    console.error("Login error:", error)
-    return "Error inesperado."
+    // NextAuth throws a redirect error to trigger the redirect
+    throw error 
   }
 }

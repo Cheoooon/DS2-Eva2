@@ -28,6 +28,7 @@ model User {
   password     String        @default("password")
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
   accounts     Account[]
   sessions     Session[]
   reservations Reservation[]
@@ -38,6 +39,7 @@ model Table {
   capacity     Int
   active       Boolean       @default(true)
   reservations Reservation[]
+  deletedAt    DateTime?
 }
 
 model Reservation {
@@ -49,6 +51,7 @@ model Reservation {
   status    Status   @default(PENDING)
   user      User     @relation(fields: [userId], references: [id])
   table     Table    @relation(fields: [tableId], references: [id])
+  deletedAt DateTime?
 }
 
 model Account {
