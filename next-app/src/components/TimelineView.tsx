@@ -125,7 +125,7 @@ export default function TimelineView({ data }: { data: any[] }) {
                             return (
                                 <div
                                     key={res.id}
-                                    className={`p-1 m-0.5 text-xs rounded transition-colors cursor-pointer flex items-center justify-center z-10 
+                                    className={`text-xs transition-colors cursor-pointer flex items-center justify-center z-10 h-full w-full
                                         ${isSelected ? 'ring-2 ring-blue-500' : ''}
                                         bg-red-200 hover:bg-red-300 text-red-900 font-semibold truncate
                                     `}
