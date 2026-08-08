@@ -57,14 +57,14 @@ export default function TimelineView({ data }: { data: any[] }) {
         
         {/* Grid Principal */}
         <div 
-            className="grid border-t border-l border-slate-200" 
+            className="grid bg-slate-200 gap-px border-t border-l border-slate-200" 
             style={{ gridTemplateColumns: `100px repeat(${hours.length}, 1fr)` }}
         >
             {/* Scrubber (fila 1) */}
-            <div className="text-xs font-bold bg-slate-50 flex items-center justify-center border-r border-b">
+            <div className="text-xs font-bold bg-slate-50 flex items-center justify-center">
                 {currentHour !== null ? `Hora: ${currentHour}:00` : "Desliza para hora"}
             </div>
-            <div className="col-span-15 p-2 bg-slate-100 border-b flex items-center" 
+            <div className="col-span-15 p-2 bg-slate-100 flex items-center" 
                  style={{ paddingLeft: `${hourColWidth / 2 - 8}px`, paddingRight: `${hourColWidth / 2 - 8}px` }}>
                 <input 
                     type="range" min="8" max="22" value={currentHour ?? 8}
@@ -84,9 +84,9 @@ export default function TimelineView({ data }: { data: any[] }) {
             </div>
 
             {/* Encabezados (fila 2) */}
-            <div className="bg-slate-50 font-bold p-2 border-r border-b text-center">Mesa</div>
+            <div className="bg-slate-50 font-bold p-2 text-center">Mesa</div>
             {hours.map(h => (
-                <div key={h} className={`text-center text-sm font-semibold p-2 bg-slate-50 border-r border-b ${currentHour === h ? 'bg-blue-100 text-blue-700' : ''}`}>
+                <div key={h} className={`text-center text-sm font-semibold p-2 bg-slate-50 ${currentHour === h ? 'bg-blue-100 text-blue-700' : ''}`}>
                     {h}:00
                 </div>
             ))}
@@ -97,17 +97,17 @@ export default function TimelineView({ data }: { data: any[] }) {
                 return (
                     <div key={table.id} className="contents">
                         {/* Nombre Mesa */}
-                        <div className={`font-medium p-2 bg-white border-r border-b flex items-center cursor-pointer ${selectedCell?.tableId === table.id && currentHour === null ? 'bg-blue-50' : ''}`}
+                        <div className={`font-medium p-2 bg-white flex items-center cursor-pointer ${selectedCell?.tableId === table.id && currentHour === null ? 'bg-blue-50' : ''}`}
                              style={{ gridRow: rowIndex }}
                              onClick={() => handleCellClick(table.id, currentHour ?? 8)}>
                             #{table.id.slice(-4)}
                         </div>
-                        
+
                         {/* Celdas de fondo */}
                         {hours.map((h, i) => (
                             <div 
                                 key={`${table.id}-${h}`}
-                                className={`border-r border-b bg-white cursor-pointer hover:bg-slate-50 ${selectedCell?.tableId === table.id && selectedCell?.hour === h ? 'ring-2 ring-inset ring-blue-500 z-10' : ''}`}
+                                className={`bg-white cursor-pointer hover:bg-slate-50 ${selectedCell?.tableId === table.id && selectedCell?.hour === h && !table.reservations.some((r: any) => h >= new Date(r.startTime).getHours() && h < new Date(r.endTime).getHours()) ? 'relative z-20 ring-2 ring-inset ring-blue-500' : ''}`}
                                 style={{ gridRow: rowIndex, gridColumn: i + 2 }}
                                 onClick={() => handleCellClick(table.id, h)} 
                             />
@@ -119,23 +119,24 @@ export default function TimelineView({ data }: { data: any[] }) {
                             const end = new Date(res.endTime).getHours();
                             const duration = Math.max(1, end - start);
                             const colStart = (start - 8) + 2;
-                            
+
                             const isSelected = selectedCell?.tableId === table.id && selectedCell?.hour >= start && selectedCell?.hour < end;
 
                             return (
                                 <div
                                     key={res.id}
-                                    className={`text-xs transition-colors cursor-pointer flex items-center justify-center z-10 h-full w-full border-r border-b border-white
-                                        ${isSelected ? 'ring-2 ring-blue-500' : ''}
-                                        bg-red-200 hover:bg-red-300 text-red-900 font-semibold truncate
-                                    `}
+                                    className="z-10 flex items-center justify-center p-px"
                                     style={{ 
                                         gridRow: rowIndex, 
                                         gridColumn: `${colStart} / span ${duration}` 
                                     }}
                                     onClick={() => handleCellClick(table.id, start)}
                                 >
-                                  <span className="truncate">{res.customerName}</span>
+                                    <div className={`w-full h-full text-xs rounded flex items-center justify-center bg-red-200 hover:bg-red-300 text-red-900 font-semibold truncate cursor-pointer
+                                        ${isSelected ? 'ring-2 ring-blue-500 ring-inset' : ''}
+                                    `}>
+                                        <span className="truncate">{res.customerName}</span>
+                                    </div>
                                 </div>
                             );
                         })}
