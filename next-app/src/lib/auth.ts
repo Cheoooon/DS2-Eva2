@@ -35,6 +35,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async session({ session, token }) {
       if (session.user && token.sub) {
+        session.user.id = token.sub
         const userData = await prisma.user.findUnique({ where: { id: token.sub } })
         if (userData) {
           session.user.role = userData.role

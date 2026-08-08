@@ -4,7 +4,8 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 
 export async function createTable(data: { capacity: number }) {
-  await prisma.table.create({ data })
+  const table = await prisma.table.create({ data })
+  console.log("Table created:", table)
   revalidatePath("/tables")
 }
 

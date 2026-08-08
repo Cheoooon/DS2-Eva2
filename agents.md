@@ -15,3 +15,6 @@
   - **Acceptance Criteria**: Observable result.
 - **Safety**: NEVER run formatters, linters, or test suites until final verification.
 - **Handoff**: After task completion, explicitly state what remains (if anything) and update `todo`.
+
+## Technical Constraints (Knowledge Base)
+- **Tailwind CSS v4**: Utiliza configuración simplificada (a menudo solo requiere importar `@import "tailwindcss";` en el CSS principal, sin `tailwind.config.js` complejo). Verificar siempre con `Context7` antes de realizar configuraciones de Tailwind.

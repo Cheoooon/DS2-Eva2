@@ -1,19 +1,13 @@
 "use server"
 
-import { prisma } from "@/lib/prisma"
+import { prisma, Status } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-import { Status } from "@prisma/client"
-import { z } from "zod"
-
-export const reservationSchema = z.object({
-  userId: z.string().cuid(),
-  tableId: z.string().cuid(),
-  startTime: z.coerce.date(),
-  endTime: z.coerce.date(),
-})
+import { reservationSchema } from "@/lib/schemas"
 
 export async function createReservation(rawData: unknown) {
+  console.log("createReservation rawData:", JSON.stringify(rawData, null, 2))
   const data = reservationSchema.parse(rawData)
+  console.log("createReservation parsed data:", JSON.stringify(data, null, 2))
 
   const existing = await prisma.reservation.findFirst({
     where: {
@@ -44,4 +38,19 @@ export async function updateReservationStatus(id: string, status: Status) {
     data: { status } 
   })
   revalidatePath("/reservations")
+}
+export async function getReservationsByDate(date: Date) {
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  return await prisma.reservation.findMany({
+    where: {
+      startTime: { gte: startOfDay, lte: endOfDay },
+      status: { not: Status.CANCELLED }
+    },
+    include: { user: true, table: true },
+    orderBy: { startTime: 'asc' }
+  })
 }

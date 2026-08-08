@@ -9,15 +9,15 @@ export default async function Navbar() {
   const role = session.user?.role
 
   return (
-    <nav className="p-4 bg-gray-800 text-white flex justify-between items-center">
-      <div className="flex gap-4">
-        <Link href="/">Dashboard</Link>
-        {role === "ADMIN" && <Link href="/admin">Usuarios</Link>}
-        {(role === "STAFF" || role === "ADMIN") && <Link href="/tables">Mesas</Link>}
-        <Link href="/reservations">Reservas</Link>
+    <nav className="px-6 py-4 bg-white border-b border-slate-200 flex justify-between items-center">
+      <div className="flex gap-6 font-medium text-slate-600">
+        <Link href="/" className="hover:text-slate-900 transition-colors">Dashboard</Link>
+        {role === "ADMIN" && <Link href="/admin" className="hover:text-slate-900 transition-colors">Usuarios</Link>}
+        {(role === "STAFF" || role === "ADMIN") && <Link href="/tables" className="hover:text-slate-900 transition-colors">Mesas</Link>}
+        <Link href="/reservations" className="hover:text-slate-900 transition-colors">Reservas</Link>
       </div>
-      <div className="flex items-center gap-4">
-        <span>{session.user?.email} ({role})</span>
+      <div className="flex items-center gap-4 text-sm text-slate-500">
+        <span>{session.user?.email}</span>
         <LogoutButton />
       </div>
     </nav>
