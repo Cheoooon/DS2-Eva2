@@ -147,6 +147,10 @@ export default function ReservationForm({
       <Input {...register("occupants", { valueAsNumber: true })} type="number" placeholder="Personas" />
       {errors.occupants && <p className="text-red-500 text-sm">{String(errors.occupants.message)}</p>}
       
+      <div>
+        <label className="block text-sm font-medium">Notas</label>
+        <textarea {...register("notes")} className="w-full px-3 py-2 border border-slate-300 rounded-lg" rows={3} placeholder="Notas adicionales..." />
+      </div>
       <Button type="submit" disabled={isSubmitting}>Confirmar Reserva</Button>
     </form>
   )
