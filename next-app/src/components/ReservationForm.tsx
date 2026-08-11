@@ -1,104 +1,153 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "./ui/Button"
 import { Input } from "./ui/Input"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
 import { reservationSchema } from "@/lib/schemas"
 import { createReservation } from "@/lib/actions/reservation"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { getReservationsForTable } from "@/lib/actions/reservation-query"
 
 interface TableOption {
   id: string
+  name: string
   capacity: number
 }
 
-export default function ReservationForm({ tables, userId }: { tables: TableOption[]; userId: string }) {
+export default function ReservationForm({ 
+    tables, 
+    userId, 
+    initialDate, 
+    initialTableId 
+}: { 
+    tables: TableOption[]; 
+    userId: string; 
+    initialDate?: string; 
+    initialTableId?: string; 
+}) {
+  const [selectedDate, setSelectedDate] = useState(initialDate || new Date().toISOString().split('T')[0])
+  const [selectedTableId, setSelectedTableId] = useState(initialTableId || (tables[0]?.id ?? ""))
+  const [selectedSlots, setSelectedSlots] = useState<number[]>([])
+  const [reservedSlots, setReservedSlots] = useState<{ start: number; end: number }[]>([])
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const router = useRouter()
 
-  const { register, handleSubmit, formState: { errors, isSubmitting }, reset, setValue } = useForm<z.infer<typeof reservationSchema>>({
+  const { register, handleSubmit, formState: { isSubmitting, errors }, reset, setValue } = useForm({
     resolver: zodResolver(reservationSchema),
     defaultValues: { 
         userId, 
-        tableId: tables[0]?.id ?? "",
-        startTime: new Date().toISOString().slice(0, 16),
-        endTime: new Date(Date.now() + 3600000).toISOString().slice(0, 16)
+        tableId: selectedTableId,
+        date: selectedDate,
+        customerName: "",
+        occupants: 1,
+        notes: "",
+        startHour: 0,
+        endHour: 0
     }
   })
 
-  const setTimePreset = (type: 'lunch' | 'dinner') => {
-    const now = new Date();
-    const dateStr = now.toISOString().split('T')[0];
-    if (type === 'lunch') {
-        setValue("startTime", `${dateStr}T13:00`);
-        setValue("endTime", `${dateStr}T15:00`);
-    } else {
-        setValue("startTime", `${dateStr}T20:00`);
-        setValue("endTime", `${dateStr}T22:00`);
-    }
-  }
+  // Synchronize hidden fields with state
+  useEffect(() => {
+    setValue("tableId", selectedTableId);
+    setValue("date", selectedDate);
+  }, [selectedTableId, selectedDate, setValue]);
 
-  const onSubmit = async (data: z.infer<typeof reservationSchema>) => {
-    console.log("Submitting reservation:", data)
+  useEffect(() => {
+    const fetchReservations = async () => {
+        const reservations = await getReservationsForTable(selectedTableId, new Date(selectedDate));
+        setReservedSlots(reservations.map(r => ({ start: r.startHour, end: r.endHour })));
+        setSelectedSlots([]);
+    }
+    fetchReservations();
+  }, [selectedDate, selectedTableId]);
+
+  const onSubmit = async (data: any) => {
+    const selectedTable = tables.find(t => t.id === selectedTableId);
+    if (selectedTable && data.occupants > selectedTable.capacity) {
+        setError(`La capacidad máxima de esta mesa es ${selectedTable.capacity} personas.`);
+        return;
+    }
+
+    if (selectedSlots.length === 0) { 
+        setError("Selecciona al menos una hora"); return; 
+    }
+    
     setError(null)
     setSuccess(false)
+    
     try {
-      await createReservation(data)
+      const sortedSlots = [...selectedSlots].sort((a,b) => a - b);
+      const startHour = sortedSlots[0];
+      const endHour = sortedSlots[sortedSlots.length - 1] + 1;
+      
+      await createReservation({ ...data, startHour, endHour });
+      
       setSuccess(true)
+      setSelectedSlots([])
       reset()
       router.refresh()
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Error desconocido")
+    } catch (e: any) {
+      console.error("DEBUG: Error en servidor:", e);
+      setError(e.message)
     }
   }
 
   const onError = (errors: any) => {
-    console.error("Form validation errors:", errors);
-  }
+    console.error("DEBUG: Errores de validación Zod:", errors);
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-4">
-      <input type="hidden" {...register("userId")} />
-
+    <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-6">
       {error && <p className="text-red-600 text-sm bg-red-50 p-2 rounded">{error}</p>}
       {success && <p className="text-green-600 text-sm bg-green-50 p-2 rounded">Reserva creada con éxito.</p>}
-
-      <div className="flex gap-2">
-        <Button type="button" className="bg-slate-200 text-slate-800 hover:bg-slate-300" onClick={() => setTimePreset('lunch')}>Comida (13:00 - 15:00)</Button>
-        <Button type="button" className="bg-slate-200 text-slate-800 hover:bg-slate-300" onClick={() => setTimePreset('dinner')}>Cena (20:00 - 22:00)</Button>
-      </div>
-
+      
+      <input type="hidden" {...register("userId")} />
+      <input type="hidden" {...register("tableId")} />
+      <input type="hidden" {...register("date")} />
+      <input type="hidden" {...register("startHour", { valueAsNumber: true })} />
+      <input type="hidden" {...register("endHour", { valueAsNumber: true })} />
+      
       <div>
-        <label className="block text-sm font-medium mb-1">Mesa</label>
-        <select {...register("tableId")} className="w-full px-3 py-2 border border-slate-300 rounded-lg">
-          {tables.map(t => (
-            <option key={t.id} value={t.id}>
-              Mesa #{t.id.slice(-4)} — Capacidad: {t.capacity}
-            </option>
-          ))}
+        <label className="block text-sm font-medium">Mesa</label>
+        <select value={selectedTableId} onChange={(e) => setSelectedTableId(e.target.value)} className="w-full p-2 border rounded">
+            {tables.map(t => <option key={t.id} value={t.id}>{t.name} ({t.capacity} pax)</option>)}
         </select>
       </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Inicio</label>
-          <Input type="datetime-local" {...register("startTime")} />
-          {errors.startTime && <p className="text-red-500 text-sm mt-1">{errors.startTime.message as string}</p>}
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Fin</label>
-          <Input type="datetime-local" {...register("endTime")} />
-          {errors.endTime && <p className="text-red-500 text-sm mt-1">{errors.endTime.message as string}</p>}
+      <div>
+        <label className="block text-sm font-medium">Fecha</label>
+        <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-full p-2 border rounded" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium">Horas (Selecciona inicio y fin)</label>
+        <div className="grid grid-cols-4 gap-2 mt-2">
+            {Array.from({ length: 15 }, (_, i) => i + 8).map(hour => {
+                const isReserved = reservedSlots.some(r => hour >= r.start && hour < r.end);
+                return (
+                    <button key={hour} type="button" disabled={isReserved} 
+                        onClick={() => {
+                            if (selectedSlots.includes(hour)) {
+                                setSelectedSlots(selectedSlots.filter(s => s !== hour));
+                            } else {
+                                setSelectedSlots([...selectedSlots, hour]);
+                            }
+                        }}
+                        className={`p-2 rounded ${isReserved ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : selectedSlots.includes(hour) ? 'bg-blue-600 text-white' : 'bg-white border hover:bg-slate-50'}`}>
+                        {hour}:00
+                    </button>
+                )
+            })}
         </div>
       </div>
-
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Reservando..." : "Confirmar Reserva"}
-      </Button>
+      <Input {...register("customerName")} placeholder="Nombre Cliente" />
+      {errors.customerName && <p className="text-red-500 text-sm">{String(errors.customerName.message)}</p>}
+      
+      <Input {...register("occupants", { valueAsNumber: true })} type="number" placeholder="Personas" />
+      {errors.occupants && <p className="text-red-500 text-sm">{String(errors.occupants.message)}</p>}
+      
+      <Button type="submit" disabled={isSubmitting}>Confirmar Reserva</Button>
     </form>
   )
 }

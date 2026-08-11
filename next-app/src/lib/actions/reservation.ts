@@ -5,25 +5,34 @@ import { revalidatePath } from "next/cache"
 import { reservationSchema } from "@/lib/schemas"
 
 export async function createReservation(rawData: unknown) {
-  console.log("createReservation rawData:", JSON.stringify(rawData, null, 2))
-  const data = reservationSchema.parse(rawData)
-  console.log("createReservation parsed data:", JSON.stringify(data, null, 2))
+  console.log("DEBUG: rawData en createReservation:", JSON.stringify(rawData, null, 2));
+  
+  // Validamos con el schema
+  const data = reservationSchema.parse(rawData);
+  console.log("DEBUG: Datos parseados por Zod:", JSON.stringify(data, null, 2));
+
 
   const existing = await prisma.reservation.findFirst({
     where: {
       tableId: data.tableId,
+      date: data.date,
       status: { not: Status.CANCELLED },
-      startTime: { lt: data.endTime },
-      endTime: { gt: data.startTime }
+      startHour: { lt: data.endHour },
+      endHour: { gt: data.startHour }
     }
   });
 
   if (existing) {
     throw new Error("Mesa no disponible en este horario.");
   }
-
-  await prisma.reservation.create({ data })
-  revalidatePath("/reservations")
+  
+  await prisma.reservation.create({ 
+      data: {
+          ...data
+      } 
+  });
+  
+  try { revalidatePath("/reservations"); } catch (e) { console.warn("revalidatePath failed"); }
 }
 
 export async function getReservations() {
@@ -39,18 +48,16 @@ export async function updateReservationStatus(id: string, status: Status) {
   })
   revalidatePath("/reservations")
 }
+
 export async function getReservationsByDate(date: Date) {
-  const startOfDay = new Date(date);
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(date);
-  endOfDay.setHours(23, 59, 59, 999);
+  const dateStr = date.toISOString().split('T')[0];
 
   return await prisma.reservation.findMany({
     where: {
-      startTime: { gte: startOfDay, lte: endOfDay },
+      date: dateStr,
       status: { not: Status.CANCELLED }
     },
     include: { user: true, table: true },
-    orderBy: { startTime: 'asc' }
+    orderBy: { startHour: 'asc' }
   })
 }

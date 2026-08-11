@@ -1,11 +1,6 @@
-# Sabor Gourmet
+# Documentación Sabor Gourmet
 
-## Project Scope
-Web App for "Sabor Gourmet" to manage table reservations online.
+Documentación técnica esencial del sistema de gestión de reservas.
 
-## Goals
-- Real-time table availability and reservations.
-- Role-based interface (Client/Staff/Admin).
-- Trazability (no deletions).
-- Configuration for staff (tables, recursion, exclusions).
-- System notifications.
+- `architecture.md`: Arquitectura del sistema, autenticación (Auth.js v5) y despliegue.
+- `schema_design.md`: Modelo de datos (Prisma) y normalización de entidades.

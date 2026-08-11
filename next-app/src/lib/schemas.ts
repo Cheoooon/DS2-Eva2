@@ -6,12 +6,16 @@ export const loginSchema = z.object({
 });
 
 export const tableSchema = z.object({
+  name: z.string().min(1, "Nombre requerido"),
   capacity: z.coerce.number().int().min(1, "La capacidad debe ser al menos 1"),
 });
-
 export const reservationSchema = z.object({
   userId: z.string(),
   tableId: z.string(),
-  startTime: z.coerce.date(),
-  endTime: z.coerce.date(),
+  date: z.string(),
+  startHour: z.coerce.number().int(),
+  endHour: z.coerce.number().int(),
+  customerName: z.string().min(1, "Nombre requerido"),
+  occupants: z.coerce.number().int().min(1, "Al menos 1 ocupante"),
+  notes: z.string().optional(),
 });

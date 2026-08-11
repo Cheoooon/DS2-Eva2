@@ -9,17 +9,18 @@ Plataforma para gestionar reservas de mesas en tiempo real con control de acceso
 - **Framework**: Next.js (App Router)
 - **ORM**: Prisma
 - **Auth**: NextAuth.js
-- **DB (Desarrollo)**: SQLite
-- **DB (Producción)**: PostgreSQL
-- **Real-time**: Socket.io / Supabase Realtime
+- **DB**: PostgreSQL (Desarrollo: SQLite)
 
-## Estructura Docs
-Revisar carpeta `/Docs` para detalles técnicos:
+## Docs
+Revisar carpeta `/docs` para detalles técnicos:
 - `architecture.md`: Diseño del sistema.
 - `schema_design.md`: Modelos Prisma.
-- `tech_specs.md`: Especificaciones técnicas.
+- `settings.md`: Reglas de negocio y notificaciones.
+- `api_design.md`: Endpoints y contratos.
+- `use_cases.md`: Casos de uso.
 
-## Instalación
-1. `pnpm install`
-2. `npx prisma db push` (Inicia entorno SQLite)
-3. `pnpm dev`
+## Instalación (Proyecto ubicado en /next-app)
+1. `cd next-app`
+2. `pnpm install`
+3. `npx prisma db push`
+4. `pnpm dev`

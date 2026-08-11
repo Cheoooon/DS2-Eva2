@@ -1,28 +1,29 @@
-# Database Schema (Prisma)
+# Schema Design
 
-```prisma
-model User {
-  id    String @id @default(uuid())
-  role  Role   @default(CLIENT)
-  reservations Reservation[]
-}
+## Models
 
-enum Role { CLIENT, STAFF, ADMIN }
+### Table
+- `id`: String (Primary Key, CUID)
+- `name`: String (Default: "mesa-")
+- `capacity`: Int
+- `active`: Boolean (Default: true)
+- `reservations`: Reservation[]
+- `deletedAt`: DateTime?
 
-model Table {
-  id       String @id @default(uuid())
-  capacity Int
-  active   Boolean @default(true)
-}
+### Reservation
+- `id`: String (Primary Key, CUID)
+- `userId`: String
+- `tableId`: String
+- `startTime`: DateTime
+- `endTime`: DateTime
+- `status`: Status (PENDING, CONFIRMED, CANCELLED, COMPLETED)
+- `customerName`: String
+- `occupants`: Int
+- `notes`: String?
+- `deletedAt`: DateTime?
 
-model Reservation {
-  id        String   @id @default(uuid())
-  userId    String
-  tableId   String
-  startTime DateTime
-  endTime   DateTime
-  status    Status   @default(PENDING)
-}
-
-enum Status { PENDING, CONFIRMED, CANCELLED, COMPLETED }
-```
+### User
+- `id`: String (Primary Key, CUID)
+- `email`: String (Unique)
+- `role`: Role (CLIENT, STAFF, ADMIN)
+- `password`: String

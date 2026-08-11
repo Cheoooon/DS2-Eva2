@@ -3,195 +3,333 @@
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 
-export default function TimelineView({ data }: { data: any[] }) {
+interface Reservation {
+  id: string
+  startHour: number
+  endHour: number
+  customerName: string
+  occupants: number
+  status: string
+  notes?: string | null
+}
+
+interface TableData {
+  id: string
+  name: string
+  capacity: number
+  active: boolean
+  reservations: Reservation[]
+}
+
+export default function TimelineView({ data }: { data: TableData[] }) {
   const [currentHour, setCurrentHour] = useState<number | null>(null)
-  const [selectedCell, setSelectedCell] = useState<{ tableId: string, hour: number } | null>(null)
-  const [hourColWidth, setHourColWidth] = useState(60) 
+  const [selectedTableId, setSelectedTableId] = useState<string | null>(null)
+  const [selectedHour, setSelectedHour] = useState<number | null>(null)
+  const [hourColWidth, setHourColWidth] = useState(60)
   const gridRef = useRef<HTMLDivElement>(null)
-  
-  const hours = Array.from({ length: 15 }, (_, i) => i + 8); // 8:00 a 22:00
 
-  // Cálculo para panel de detalle global
-  const activeReservationsAtHour = currentHour !== null 
-    ? data.flatMap(table => 
-        table.reservations
-            .filter((r: any) => {
-                const startHour = new Date(r.startTime).getHours();
-                const endHour = new Date(r.endTime).getHours();
-                return currentHour >= startHour && currentHour < endHour;
-            })
-            .map(r => ({ ...r, tableName: `Mesa #${table.id.slice(-4)}`, tableId: table.id }))
-      )
-    : [];
+  const hours = Array.from({ length: 15 }, (_, i) => i + 8) // 8:00 a 22:00
 
-  // Datos para el panel de detalle de celda seleccionada
-  const selectedReservation = selectedCell
-    ? data.find(t => t.id === selectedCell.tableId)?.reservations.find((r: any) => {
-        const startHour = new Date(r.startTime).getHours();
-        const endHour = new Date(r.endTime).getHours();
-        return selectedCell.hour >= startHour && selectedCell.hour < endHour;
-      })
-    : null;
+  // Reservas activas globalmente en la hora seleccionada por el slider
+  const activeReservationsAtHour =
+    currentHour !== null
+      ? data.flatMap((table) =>
+          table.reservations
+            .filter((r) => currentHour >= r.startHour && currentHour < r.endHour)
+            .map((r) => ({ ...r, tableName: table.name, tableId: table.id }))
+        )
+      : []
 
-  // Medir ancho para alineación del slider
+  const selectedTable = data.find((t) => t.id === selectedTableId)
+  const selectedReservation =
+    selectedTable && selectedHour !== null
+      ? selectedTable.reservations.find(
+          (r) => selectedHour >= r.startHour && selectedHour < r.endHour
+        )
+      : null
+
   useEffect(() => {
     const updateWidth = () => {
       if (gridRef.current) {
-        const totalWidth = gridRef.current.clientWidth;
-        setHourColWidth((totalWidth - 100) / 15);
+        const totalWidth = gridRef.current.clientWidth
+        // 100px para la columna 'Mesa', el resto dividido entre las 15 horas
+        setHourColWidth(Math.max(50, (totalWidth - 100) / 15))
       }
     }
     updateWidth()
-    window.addEventListener('resize', updateWidth)
-    return () => window.removeEventListener('resize', updateWidth)
+    window.addEventListener("resize", updateWidth)
+    return () => window.removeEventListener("resize", updateWidth)
   }, [])
 
-  const handleCellClick = (tableId: string, hour: number) => {
-    setSelectedCell({ tableId, hour });
-    setCurrentHour(null);
-  };
+  const handleTableClick = (tableId: string) => {
+    setSelectedTableId(tableId)
+    setSelectedHour(null)
+    setCurrentHour(null)
+  }
+
+  const handleSlotClick = (tableId: string, hour: number) => {
+    setSelectedTableId(tableId)
+    setSelectedHour(hour)
+    setCurrentHour(null)
+  }
 
   return (
     <div className="space-y-6">
+      {/* Contenedor Grid Timeline */}
       <div className="overflow-x-auto p-4 bg-white rounded-lg shadow" ref={gridRef}>
-        
-        {/* Grid Principal */}
-        <div 
-            className="grid bg-slate-200 gap-px border-t border-l border-slate-200" 
-            style={{ gridTemplateColumns: `100px repeat(${hours.length}, 1fr)` }}
+        <div
+          className="grid bg-slate-200 gap-px border-t border-l border-slate-200 table-fixed"
+          style={{
+            gridTemplateColumns: `100px repeat(${hours.length}, 1fr)`,
+          }}
         >
-            {/* Scrubber (fila 1) */}
-            <div className="text-xs font-bold bg-slate-50 flex items-center justify-center">
-                {currentHour !== null ? `Hora: ${currentHour}:00` : "Desliza para hora"}
-            </div>
-            <div className="col-span-15 p-2 bg-slate-100 flex items-center" 
-                 style={{ paddingLeft: `${hourColWidth / 2 - 8}px`, paddingRight: `${hourColWidth / 2 - 8}px` }}>
-                <input 
-                    type="range" min="8" max="22" value={currentHour ?? 8}
-                    onClick={() => {
-                        if (currentHour === null) {
-                            setCurrentHour(8);
-                            setSelectedCell(null);
-                        }
-                    }}
-                    onInput={(e) => { 
-                        const val = parseInt((e.target as HTMLInputElement).value);
-                        setCurrentHour(val); 
-                        setSelectedCell(null); 
-                    }}
-                    className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${currentHour === null ? 'bg-slate-200 slider-no-value' : 'bg-blue-500'}`}
-                />
-            </div>
+          {/* Header Slider Label */}
+          <div className="text-xs font-bold bg-slate-50 flex items-center justify-center p-2 text-center truncate">
+            {currentHour !== null ? `Hora: ${currentHour}:00` : "Desliza para hora"}
+          </div>
 
-            {/* Encabezados (fila 2) */}
-            <div className="bg-slate-50 font-bold p-2 text-center">Mesa</div>
-            {hours.map(h => (
-                <div key={h} className={`text-center text-sm font-semibold p-2 bg-slate-50 ${currentHour === h ? 'bg-blue-100 text-blue-700' : ''}`}>
-                    {h}:00
+          {/* Slider alineado con las columnas de horas */}
+          <div
+            className="col-span-15 p-2 bg-slate-100 flex items-center"
+            style={{
+              paddingLeft: `${hourColWidth / 2 - 8}px`,
+              paddingRight: `${hourColWidth / 2 - 8}px`,
+            }}
+          >
+            <input
+              type="range"
+              min="8"
+              max="22"
+              value={currentHour ?? 8}
+              onClick={() => {
+                if (currentHour === null) setCurrentHour(8)
+              }}
+              onInput={(e) => {
+                setCurrentHour(parseInt((e.target as HTMLInputElement).value))
+                setSelectedTableId(null)
+                setSelectedHour(null)
+              }}
+              className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${
+                currentHour === null ? "bg-slate-200 slider-no-value" : "bg-blue-500"
+              }`}
+            />
+          </div>
+
+          {/* Table Header */}
+          <div className="bg-slate-50 font-bold p-2 text-center truncate">Mesa</div>
+
+          {/* Hours Headers */}
+          {hours.map((h) => (
+            <div
+              key={h}
+              className={`text-center text-sm font-semibold p-2 bg-slate-50 truncate ${
+                currentHour === h ? "bg-blue-100 text-blue-700 font-bold" : ""
+              }`}
+            >
+              {h}:00
+            </div>
+          ))}
+
+          {/* Filas por Mesa */}
+          {data.map((table, tableIndex) => {
+            const rowIndex = tableIndex + 3
+
+            return (
+              <div key={table.id} className="contents">
+                {/* Nombre de la mesa */}
+                <div
+                  className={`font-medium p-2 bg-white flex items-center cursor-pointer truncate ${
+                    selectedTableId === table.id && selectedHour === null ? "bg-blue-50" : ""
+                  }`}
+                  style={{ gridRow: rowIndex }}
+                  onClick={() => handleTableClick(table.id)}
+                >
+                  <span className="truncate">#{table.name}</span>
                 </div>
-            ))}
 
-            {/* Contenido por Mesa */}
-            {data.map((table, tableIndex) => {
-                const rowIndex = tableIndex + 3;
-                return (
-                    <div key={table.id} className="contents">
-                        {/* Nombre Mesa */}
-                        <div className={`font-medium p-2 bg-white flex items-center cursor-pointer ${selectedCell?.tableId === table.id && currentHour === null ? 'bg-blue-50' : ''}`}
-                             style={{ gridRow: rowIndex }}
-                             onClick={() => handleCellClick(table.id, currentHour ?? 8)}>
-                            #{table.id.slice(-4)}
+                {/* Renderizado único: Celdas vacías o Bloques de Reserva */}
+                {hours.map((h, i) => {
+                  const resAtStart = table.reservations.find((r) => r.startHour === h)
+                  const isCoveredByRes = table.reservations.some(
+                    (r) => h >= r.startHour && h < r.endHour
+                  )
+
+                  if (resAtStart) {
+                    const duration = Math.max(1, resAtStart.endHour - resAtStart.startHour)
+                    const colStart = h - 8 + 2
+                    const isSelected =
+                      selectedTableId === table.id &&
+                      selectedHour !== null && selectedHour >= resAtStart.startHour &&
+                      selectedHour < resAtStart.endHour
+
+                    return (
+                      <div
+                        key={resAtStart.id}
+                        className={`flex items-center justify-center p-0.5 cursor-pointer min-w-0 overflow-hidden ${
+                          isSelected ? "z-20" : "z-10"
+                        }`}
+                        style={{
+                          gridRow: rowIndex,
+                          gridColumn: `${colStart} / span ${duration}`,
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedTableId(table.id)
+                          setSelectedHour(resAtStart.startHour)
+                          setCurrentHour(null)
+                        }}
+                      >
+                        <div
+                          className={`w-full h-full text-xs rounded flex items-center justify-center text-red-900 font-semibold min-w-0 overflow-hidden transition-all ${
+                            isSelected
+                              ? "bg-red-400 ring-2 ring-blue-500 ring-inset shadow-md"
+                              : "bg-red-200 hover:bg-red-300"
+                          }`}
+                        >
+                          <span className="truncate px-1 block w-full text-center">
+                            {resAtStart.customerName}
+                          </span>
                         </div>
+                      </div>
+                    )
+                  }
 
-                        {/* Celdas de fondo */}
-                        {hours.map((h, i) => (
-                            <div 
-                                key={`${table.id}-${h}`}
-                                className={`bg-white cursor-pointer hover:bg-slate-50 ${selectedCell?.tableId === table.id && selectedCell?.hour === h && !table.reservations.some((r: any) => h >= new Date(r.startTime).getHours() && h < new Date(r.endTime).getHours()) ? 'relative z-20 ring-2 ring-inset ring-blue-500' : ''}`}
-                                style={{ gridRow: rowIndex, gridColumn: i + 2 }}
-                                onClick={() => handleCellClick(table.id, h)} 
-                            />
-                        ))}
-                        
-                        {/* Reservas */}
-                        {table.reservations.map((res: any) => {
-                            const start = new Date(res.startTime).getHours();
-                            const end = new Date(res.endTime).getHours();
-                            const duration = Math.max(1, end - start);
-                            const colStart = (start - 8) + 2;
+                  if (isCoveredByRes) {
+                    return null
+                  }
 
-                            const isSelected = selectedCell?.tableId === table.id && selectedCell?.hour >= start && selectedCell?.hour < end;
+                  const isSlotSelected = selectedTableId === table.id && selectedHour === h
 
-                            return (
-                                <div
-                                    key={res.id}
-                                    className="z-10 flex items-center justify-center p-px"
-                                    style={{ 
-                                        gridRow: rowIndex, 
-                                        gridColumn: `${colStart} / span ${duration}` 
-                                    }}
-                                    onClick={() => handleCellClick(table.id, start)}
-                                >
-                                    <div className={`w-full h-full text-xs rounded flex items-center justify-center bg-red-200 hover:bg-red-300 text-red-900 font-semibold truncate cursor-pointer
-                                        ${isSelected ? 'ring-2 ring-blue-500 ring-inset' : ''}
-                                    `}>
-                                        <span className="truncate">{res.customerName}</span>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                );
-            })}
+                  return (
+                    <div
+                      key={`${table.id}-${h}`}
+                      className={`bg-white cursor-pointer hover:bg-slate-50 transition-colors ${
+                        isSlotSelected ? "z-20 ring-2 ring-inset ring-blue-500" : ""
+                      }`}
+                      style={{ gridRow: rowIndex, gridColumn: i + 2 }}
+                      onClick={() => handleSlotClick(table.id, h)}
+                    />
+                  )
+                })}
+              </div>
+            )
+          })}
         </div>
       </div>
-      
-      {/* Info Panel */}
-      <div className="p-4 bg-slate-50 rounded-lg border">
-          {selectedCell ? (
-              <div className="space-y-2">
-                  <h3 className="font-bold">Detalle: Mesa #{selectedCell.tableId.slice(-4)}</h3>
-                  {selectedReservation ? (
-                      <div className="bg-white p-3 rounded shadow-sm border">
-                          <p className="font-semibold text-lg">{selectedReservation.customerName}</p>
-                          <p className="text-sm text-slate-600">{selectedReservation.occupants} personas</p>
-                          <p className="text-xs text-slate-500">Estado: {selectedReservation.status}</p>
-                          <p className="text-sm mt-2 font-medium">Horario: {new Date(selectedReservation.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {new Date(selectedReservation.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-                          {selectedReservation.notes && <p className="text-sm italic text-slate-600 mt-1 bg-slate-100 p-2 rounded">Notas: {selectedReservation.notes}</p>}
-                      </div>
-                  ) : (
-                      <Link 
-                        href={`/reservations?date=${new Date().toISOString().split('T')[0]}&time=${selectedCell.hour.toString().padStart(2, '0')}:00`}
-                        className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                      >
-                        Crear Reserva aquí
-                      </Link>
-                  )}
-              </div>
-          ) : currentHour !== null ? (
-              <div>
-                <h3 className="font-bold mb-2">Detalle de reservas - {currentHour}:00</h3>
-                {activeReservationsAtHour.length === 0 ? (
-                    <p className="text-sm text-slate-500">No hay mesas ocupadas a esta hora.</p>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {activeReservationsAtHour.map((res: any) => (
-                            <div 
-                                key={res.id} 
-                                className="bg-white p-3 rounded shadow-sm text-sm border cursor-pointer hover:border-blue-300"
-                                onClick={() => handleCellClick(res.tableId, currentHour)}
-                            >
-                                <p className="font-semibold text-blue-900">{res.customerName}</p>
-                                <p className="text-xs text-slate-500">{res.tableName} · {res.occupants} pax</p>
-                                {res.notes && <p className="text-xs italic text-slate-400 mt-1">Notas: {res.notes}</p>}
-                            </div>
-                        ))}
+
+      {/* Panel Inferior: Detalle de Mesa o Vista Global por Hora */}
+      <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+        {/* Caso 1: Se usó el slider y hay un horario global activo */}
+        {currentHour !== null ? (
+          <div className="space-y-3">
+            <div className="flex justify-between items-center border-b pb-2">
+              <h3 className="font-bold text-lg">
+                Reservas activas a las {currentHour}:00
+              </h3>
+              <span className="text-sm bg-blue-100 text-blue-800 font-semibold px-2.5 py-0.5 rounded-full">
+                {activeReservationsAtHour.length} {activeReservationsAtHour.length === 1 ? "reserva" : "reservas"}
+              </span>
+            </div>
+
+            {activeReservationsAtHour.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {activeReservationsAtHour.map((res) => (
+                  <div
+                    key={res.id}
+                    className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm space-y-1 cursor-pointer hover:border-blue-400"
+                    onClick={() => {
+                      setSelectedTableId(res.tableId)
+                      setSelectedHour(res.startHour)
+                      setCurrentHour(null)
+                    }}
+                  >
+                    <div className="flex justify-between items-start">
+                      <span className="font-semibold text-slate-900">{res.customerName}</span>
+                      <span className="text-xs font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded">
+                        Mesa #{res.tableName}
+                      </span>
                     </div>
+                    <p className="text-xs text-slate-600">{res.occupants} personas</p>
+                    <p className="text-xs text-slate-500">
+                      Horario: {res.startHour}:00 - {res.endHour}:00
+                    </p>
+                    {res.notes && (
+                      <p className="text-xs italic text-slate-500 mt-1 truncate">
+                        Nota: {res.notes}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-slate-500 text-sm">
+                No hay reservas activas en ninguna mesa a las {currentHour}:00.
+              </p>
+            )}
+          </div>
+        ) : selectedTable ? (
+          /* Caso 2: Se seleccionó una mesa o casilla específica */
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="font-bold text-lg">Detalle: Mesa #{selectedTable.name}</h3>
+              <Link href="/tables" className="text-sm text-blue-600 hover:underline">
+                Editar Mesa
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-sm bg-white p-3 rounded border">
+              <p>
+                <span className="font-semibold">Capacidad:</span> {selectedTable.capacity}
+              </p>
+              <p>
+                <span className="font-semibold">Estado:</span>{" "}
+                {selectedTable.active ? "Activa" : "Inactiva"}
+              </p>
+              <p>
+                <span className="font-semibold">Reservas Hoy:</span>{" "}
+                {selectedTable.reservations.length}
+              </p>
+              <p>
+                <span className="font-semibold">Ocupantes Totales:</span>{" "}
+                {selectedTable.reservations.reduce((sum, r) => sum + r.occupants, 0)}
+              </p>
+            </div>
+
+            {selectedReservation ? (
+              <div className="bg-white p-3 rounded shadow-sm border mt-2">
+                <p className="font-semibold text-lg">{selectedReservation.customerName}</p>
+                <p className="text-sm text-slate-600">
+                  {selectedReservation.occupants} personas
+                </p>
+                <p className="text-xs text-slate-500">
+                  Estado: {selectedReservation.status}
+                </p>
+                <p className="text-sm mt-2 font-medium">
+                  Horario: {selectedReservation.startHour}:00 - {selectedReservation.endHour}:00
+                </p>
+                {selectedReservation.notes && (
+                  <p className="text-sm italic text-slate-600 mt-1 bg-slate-100 p-2 rounded">
+                    Notas: {selectedReservation.notes}
+                  </p>
                 )}
               </div>
-          ) : (
-              <p className="text-slate-500">Selecciona una hora en el buscador o una celda para ver detalles.</p>
-          )}
+            ) : (
+              <Link
+                href={`/reservations?date=${new Date().toISOString().split("T")[0]}&time=${
+                  selectedHour ? `${selectedHour}:00` : "08:00"
+                }&table=${selectedTableId}`}
+                className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-2 text-sm font-medium"
+              >
+                Crear Reserva en este horario ({selectedHour ? `${selectedHour}:00` : "Selecciona hora"})
+              </Link>
+            )}
+          </div>
+        ) : (
+          /* Caso 3: Estado inicial sin selección */
+          <p className="text-slate-500 text-sm">
+            Selecciona una mesa, una hora en la grilla o desliza el control superior para ver detalles.
+          </p>
+        )}
       </div>
     </div>
   )

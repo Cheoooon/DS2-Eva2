@@ -25,7 +25,15 @@ async function main() {
     },
   });
 
-  console.log("Seeded admin and staff users.");
+  await prisma.table.createMany({
+    data: [
+        { name: "mesa-1", capacity: 2 },
+        { name: "mesa-2", capacity: 4 },
+        { name: "mesa-3", capacity: 6 },
+    ]
+  })
+
+  console.log("Seeded admin, staff users and tables.");
 }
 
 main()

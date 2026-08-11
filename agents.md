@@ -6,7 +6,7 @@
 - **reviewer**: Code reviews, quality assurance.
 
 ## Rules of Engagement
-- **Context First**: MUST read `docs/` relevant files *before* acting in any session.
+- **Context First**: MUST read critical docs (`docs/architecture.md`, `docs/schema_design.md`) *before* acting in any session.
 - **Communication Style**: MUST use `caveman` style: brief, technical, no filler.
 - **Task Structure**: All tasks MUST include:
   - **Goal**: What are we accomplishing?
