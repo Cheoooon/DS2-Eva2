@@ -50,7 +50,7 @@ export async function getReservationById(id: string) {
     })
 }
 
-export async function updateReservation(id: string, data: { tableId: string; date: string; startHour: number; endHour: number; customerName: string; occupants: number; notes?: string | null; status: any }) {
+export async function updateReservation(id: string, data: { tableId: string; date: string; startHour: number; endHour: number; customerName: string; occupants: number; notes?: string | null; status: Status }) {
   const oldReservation = await prisma.reservation.findUnique({ where: { id } })
   if (!oldReservation) throw new Error("Reserva no encontrada")
 
