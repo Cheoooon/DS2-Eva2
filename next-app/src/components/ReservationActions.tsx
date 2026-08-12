@@ -59,7 +59,7 @@ export function ReservationActions({ reservation, isAdmin }: ReservationActionsP
                             <button 
                                 key={key}
                                 onClick={() => handleStatusChange(key as Status)}
-                                className={`${STATUS_COLORS[key as Status]} px-4 py-2 rounded-lg font-medium w-full`}
+                                className={`${STATUS_COLORS[key as Status]} px-4 py-2 rounded-lg font-medium w-full cursor-pointer hover:opacity-80 transition-opacity`}
                             >
                                 {label}
                             </button>
