@@ -30,6 +30,7 @@ export default async function ReservationsPage(props: { searchParams: Promise<{ 
           userId={session.user?.id ?? ""}
           initialDate={searchParams.date}
           initialTableId={searchParams.table}
+          initialTime={searchParams.time}
         />
       </Card>
     
