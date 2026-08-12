@@ -1,6 +1,7 @@
 import { getReservations } from "@/lib/actions/reservation"
 import { getTables } from "@/lib/actions/table"
 import { STATUS_LABELS } from "@/lib/constants"
+import { ReservationActions } from "@/components/ReservationActions"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { Card } from "@/components/ui/Card"
@@ -50,7 +51,7 @@ export default async function ReservationHistoryPage(props: { searchParams: Prom
                   {res.date} · {res.startHour}:00 — {res.endHour}:00 · Creada: {res.createdAt ? new Date(res.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
                 <span className={`text-xs font-semibold px-2 py-1 rounded ${
                     res.status === 'PENDING' ? 'bg-slate-100' :
                     res.status === 'IN_PROGRESS' ? 'bg-yellow-100' :
@@ -60,7 +61,7 @@ export default async function ReservationHistoryPage(props: { searchParams: Prom
                 }`}>
                     {STATUS_LABELS[res.status as keyof typeof STATUS_LABELS]}
                 </span>
-                <Link href={`/reservations/${res.id}/edit`} className="text-sm text-blue-600 hover:underline">Editar</Link>
+                <ReservationActions reservation={res} isAdmin={session.user?.role === 'ADMIN'} />
               </div>
             </div>
           </Card>
