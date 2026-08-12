@@ -38,3 +38,4 @@ prisma/generated/
 dev.db
 *.db
 *.db-journal
+next-app/src/generated/
