@@ -35,9 +35,11 @@ export async function createReservation(rawData: unknown) {
   try { revalidatePath("/reservations"); } catch (e) { console.warn("revalidatePath failed"); }
 }
 
-export async function getReservations() {
+export async function getReservations(options: { date?: string, sort?: 'asc' | 'desc' } = {}) {
   return await prisma.reservation.findMany({
-    include: { user: true, table: true }
+    where: options.date ? { date: options.date } : {},
+    include: { user: true, table: true },
+    orderBy: { createdAt: options.sort || 'desc' }
   })
 }
 
