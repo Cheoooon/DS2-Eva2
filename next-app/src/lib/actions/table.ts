@@ -32,12 +32,22 @@ export async function updateTable(id: string, data: { name?: string; capacity?: 
 }
 
 export async function deleteTable(id: string) {
-  const tableWithReservations = await prisma.reservation.findFirst({
-    where: { tableId: id }
+  // Solo permitir borrar si todas las reservaciones son MOVED
+  const activeReservation = await prisma.reservation.findFirst({
+    where: {
+      tableId: id,
+      status: { not: 'MOVED' }
+    }
   })
-  if (tableWithReservations) {
-    throw new Error("No se puede borrar una mesa con reservas asociadas.")
+  if (activeReservation) {
+    throw new Error("No se puede borrar una mesa con reservas asociadas que no estén en estado 'Cambiado de mesa' (MOVED).")
   }
+
+  // Borrar primero las reservaciones MOVED asociadas
+  await prisma.reservation.deleteMany({
+    where: { tableId: id, status: 'MOVED' }
+  })
+
   await prisma.table.delete({ where: { id } })
   revalidatePath("/tables")
 }

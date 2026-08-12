@@ -60,7 +60,7 @@ export default function TableManager({ tables }: { tables: TableWithReservations
                   </div>
                 </div>
             )}
-            {table.reservations?.length === 0 && (
+            {table.reservations.every(r => r.status === 'MOVED') && (
               confirmDeleteId === table.id ? (
                 <div className="absolute inset-0 bg-white/95 z-10 p-4 flex flex-col items-center justify-center rounded-lg border border-red-200">
                   <p className="text-sm font-medium text-slate-800 mb-3 text-center">
