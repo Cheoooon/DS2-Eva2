@@ -50,11 +50,12 @@ export async function getReservationById(id: string) {
     })
 }
 
-export async function updateReservation(id: string, data: { tableId: string; date: string; startHour: number; endHour: number; customerName: string; occupants: number; notes?: string | null; status: Status }) {
+export async function updateReservation(id: string, data: any) {
+  console.log("DEBUG: Datos de updateReservation recibidos:", JSON.stringify(data, null, 2));
   const oldReservation = await prisma.reservation.findUnique({ where: { id } })
   if (!oldReservation) throw new Error("Reserva no encontrada")
 
-  const status = data.status === 'MOVED' ? oldReservation.status : data.status
+  const status = data.status === 'MOVED' ? oldReservation.status : (data.status as Status)
 
   // Si cambia de mesa, lógica especial
   if (oldReservation.tableId !== data.tableId) {
@@ -73,11 +74,33 @@ export async function updateReservation(id: string, data: { tableId: string; dat
       // 2. Transacción
       await prisma.$transaction([
           prisma.reservation.update({ where: { id }, data: { status: Status.MOVED } }),
-          prisma.reservation.create({ data: { ...data, status, userId: oldReservation.userId } })
+          prisma.reservation.create({ data: { 
+            tableId: data.tableId,
+            date: data.date,
+            startHour: data.startHour,
+            endHour: data.endHour,
+            customerName: data.customerName,
+            occupants: data.occupants,
+            notes: data.notes,
+            status: status,
+            userId: oldReservation.userId 
+          } })
       ])
   } else {
       // Solo actualización normal
-      await prisma.reservation.update({ where: { id }, data: { ...data, status } })
+      await prisma.reservation.update({ 
+        where: { id }, 
+        data: {
+            tableId: data.tableId,
+            date: data.date,
+            startHour: data.startHour,
+            endHour: data.endHour,
+            customerName: data.customerName,
+            occupants: data.occupants,
+            notes: data.notes,
+            status: status
+        } 
+      })
   }
 
   revalidatePath("/reservations")

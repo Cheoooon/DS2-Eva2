@@ -212,6 +212,7 @@ export default function ReservationForm({
   }
 
   const onSubmitHandler = async (data: ReservationFormData) => {
+    console.log("DEBUG: Datos enviados desde el formulario:", data);
     setError(null)
     setSuccess(false)
 
@@ -270,6 +271,17 @@ export default function ReservationForm({
       <input type="hidden" {...register("startHour", { valueAsNumber: true })} />
       <input type="hidden" {...register("endHour", { valueAsNumber: true })} />
 
+      {initialData && (
+        <div>
+          <label className="block text-sm font-medium mb-1">Estado</label>
+          <select {...register("status")} className="w-full p-2 border rounded-lg">
+            {Object.entries(STATUS_LABELS)
+              .filter(([key]) => key !== 'MOVED')
+              .map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+          </select>
+        </div>
+      )}
+
       <div>
         <label className="block text-sm font-medium mb-1">Fecha</label>
         <input 
@@ -296,17 +308,6 @@ export default function ReservationForm({
           }} 
         />
       </div>
-
-      {initialData && (
-        <div>
-          <label className="block text-sm font-medium mb-1">Estado</label>
-          <select {...register("status")} className="w-full p-2 border rounded-lg">
-            {Object.entries(STATUS_LABELS)
-              .filter(([key]) => key !== 'MOVED')
-              .map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-          </select>
-        </div>
-      )}
 
       <div>
         <label className="block text-sm font-medium mb-2">Selecciona Horario</label>
