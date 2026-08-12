@@ -12,6 +12,7 @@ type TableWithReservations = Table & { reservations: Reservation[] }
 export default function TableManager({ tables }: { tables: TableWithReservations[] }) {
   const router = useRouter()
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [confirmActiveId, setConfirmActiveId] = useState<string | null>(null)
 
   return (
     <div className="p-4">
@@ -32,16 +33,33 @@ export default function TableManager({ tables }: { tables: TableWithReservations
             <button onClick={() => router.push(`/tables/${table.id}/edit`)} className="p-2 text-slate-500 hover:text-green-600 transition">
                <Edit2 size={18} />
             </button>
-            <button onClick={async () => {
-                try {
-                    await updateTable(table.id, { active: !table.active })
-                    router.refresh()
-                } catch (e: any) {
-                    alert(e.message)
-                }
-            }} className="p-2 text-slate-500 hover:text-blue-600 transition">
+            <button onClick={() => setConfirmActiveId(table.id)} className="p-2 text-slate-500 hover:text-blue-600 transition">
               <Power size={18} />
             </button>
+            {confirmActiveId === table.id && (
+                <div className="absolute inset-0 bg-white/95 z-10 p-4 flex flex-col items-center justify-center rounded-lg border border-blue-200">
+                  <p className="text-sm font-medium text-slate-800 mb-3 text-center">
+                    ¿Desea {table.active ? "desactivar" : "activar"} la mesa {table.name}?
+                  </p>
+                  <div className="flex gap-2">
+                    <Button onClick={() => setConfirmActiveId(null)} className="bg-slate-200 text-slate-800 hover:bg-slate-300 text-xs py-1 px-3">Cancelar</Button>
+                    <Button 
+                      onClick={async () => {
+                        try {
+                            await updateTable(table.id, { active: !table.active })
+                            setConfirmActiveId(null)
+                            router.refresh()
+                        } catch (e: any) {
+                            alert(e.message)
+                        }
+                    }} 
+                      className="bg-blue-600 text-white hover:bg-blue-700 text-xs py-1 px-3"
+                    >
+                      Confirmar
+                    </Button>
+                  </div>
+                </div>
+            )}
             {table.reservations?.length === 0 && (
               confirmDeleteId === table.id ? (
                 <div className="absolute inset-0 bg-white/95 z-10 p-4 flex flex-col items-center justify-center rounded-lg border border-red-200">
