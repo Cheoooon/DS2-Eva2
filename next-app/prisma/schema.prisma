@@ -15,9 +15,10 @@ enum Role {
 
 enum Status {
   PENDING
-  CONFIRMED
-  CANCELLED
+  IN_PROGRESS
   COMPLETED
+  CANCELLED
+  MOVED
 }
 
 model User {

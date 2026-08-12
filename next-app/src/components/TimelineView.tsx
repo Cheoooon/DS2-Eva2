@@ -35,7 +35,7 @@ export default function TimelineView({ data }: { data: TableData[] }) {
     currentHour !== null
       ? data.flatMap((table) =>
           table.reservations
-            .filter((r) => currentHour >= r.startHour && currentHour < r.endHour)
+            .filter((r) => currentHour >= r.startHour && currentHour < r.endHour && r.status !== 'CANCELLED' && r.status !== 'MOVED')
             .map((r) => ({ ...r, tableName: table.name, tableId: table.id }))
         )
       : []
@@ -52,7 +52,6 @@ export default function TimelineView({ data }: { data: TableData[] }) {
     const updateWidth = () => {
       if (gridRef.current) {
         const totalWidth = gridRef.current.clientWidth
-        // 100px para la columna 'Mesa', el resto dividido entre las 15 horas
         setHourColWidth(Math.max(50, (totalWidth - 100) / 15))
       }
     }
@@ -75,7 +74,6 @@ export default function TimelineView({ data }: { data: TableData[] }) {
 
   return (
     <div className="space-y-6">
-      {/* Contenedor Grid Timeline */}
       <div className="overflow-x-auto p-4 bg-white rounded-lg shadow" ref={gridRef}>
         <div
           className="grid bg-slate-200 gap-px border-t border-l border-r border-b border-slate-200 table-fixed"
@@ -83,14 +81,12 @@ export default function TimelineView({ data }: { data: TableData[] }) {
             gridTemplateColumns: `100px repeat(${hours.length}, 1fr)`,
           }}
         >
-          {/* Header Slider Label */}
           <div className="text-[10px] font-bold bg-slate-50 flex items-center justify-center p-1 text-center border-b border-slate-300 w-full h-[40px]">
             <span className="leading-[1] px-1">
               {currentHour !== null ? <>{currentHour}:00<br />{currentHour + 1}:00</> : <>Selecciona<br />horario</>}
             </span>
           </div>
 
-          {/* Slider alineado con las columnas de horas */}
           <div
             className="col-span-15 p-2 bg-slate-100 flex items-center"
             style={{
@@ -117,10 +113,8 @@ export default function TimelineView({ data }: { data: TableData[] }) {
             />
           </div>
 
-          {/* Table Header */}
           <div className="bg-slate-50 font-bold p-2 text-center truncate border-b border-slate-300">Mesa</div>
 
-          {/* Hours Headers */}
           {hours.map((h) => (
             <div key={h} className="flex flex-col items-center justify-center border-r border-l border-white border-b border-slate-300 py-1">
               <span className={`text-[10px] font-medium px-2 py-0 rounded-full ${currentHour === h ? "bg-blue-200 text-blue-800 font-bold" : "bg-slate-200 text-slate-700"}`}>
@@ -133,13 +127,11 @@ export default function TimelineView({ data }: { data: TableData[] }) {
             </div>
           ))}
 
-          {/* Filas por Mesa */}
           {data.map((table, tableIndex) => {
             const rowIndex = tableIndex + 3
 
             return (
               <div key={table.id} className="contents">
-                {/* Nombre de la mesa */}
                 <div
                   className={`font-medium p-2 bg-white flex flex-col cursor-pointer truncate justify-between relative ${
                     selectedTableId === table.id && selectedHour === null ? "bg-blue-50" : ""
@@ -159,27 +151,20 @@ export default function TimelineView({ data }: { data: TableData[] }) {
                   </div>
                 </div>
 
-                {/* Renderizado único: Celdas vacías o Bloques de Reserva */}
                 {hours.map((h, i) => {
-                  const resAtStart = table.reservations.find((r) => r.startHour === h)
+                  const resAtStart = table.reservations.find((r) => r.startHour === h && r.status !== 'CANCELLED' && r.status !== 'MOVED')
                   const isCoveredByRes = table.reservations.some(
-                    (r) => h >= r.startHour && h < r.endHour
+                    (r) => h >= r.startHour && h < r.endHour && r.status !== 'CANCELLED' && r.status !== 'MOVED'
                   )
 
                   if (resAtStart) {
                     const duration = Math.max(1, resAtStart.endHour - resAtStart.startHour)
                     const colStart = h - 8 + 2
-                    const isSelected =
-                      selectedTableId === table.id &&
-                      selectedHour !== null && selectedHour >= resAtStart.startHour &&
-                      selectedHour < resAtStart.endHour
-
+                    
                     return (
                       <div
                         key={resAtStart.id}
-                        className={`flex items-center justify-center p-0.5 cursor-pointer min-w-0 overflow-hidden ${
-                          isSelected ? "z-20" : "z-10"
-                        } ${!table.active ? "opacity-50" : ""}`}
+                        className={`flex items-center justify-center p-0.5 cursor-pointer min-w-0 overflow-hidden ${!table.active ? "opacity-50" : ""}`}
                         style={{
                           gridRow: rowIndex,
                           gridColumn: `${colStart} / span ${duration}`,
@@ -193,10 +178,11 @@ export default function TimelineView({ data }: { data: TableData[] }) {
                         }}
                       >
                         <div
-                          className={`w-full h-full text-xs rounded flex items-center justify-center text-red-900 font-semibold min-w-0 overflow-hidden transition-all ${
-                            isSelected
-                              ? "bg-red-400 ring-2 ring-blue-500 ring-inset shadow-md"
-                              : "bg-red-200 hover:bg-red-300"
+                          className={`w-full h-full text-xs rounded flex items-center justify-center font-semibold min-w-0 overflow-hidden transition-all ${
+                              resAtStart.status === 'PENDING' ? 'bg-slate-200 text-slate-800' :
+                              resAtStart.status === 'IN_PROGRESS' ? 'bg-yellow-200 text-yellow-900' :
+                              resAtStart.status === 'COMPLETED' ? 'bg-green-200 text-green-900' :
+                              'bg-blue-200 text-blue-900'
                           }`}
                         >
                           <span className="truncate px-1 block w-full text-center">
@@ -207,19 +193,13 @@ export default function TimelineView({ data }: { data: TableData[] }) {
                     )
                   }
 
-                  if (isCoveredByRes) {
-                    return null
-                  }
-
-                  const isSlotSelected = selectedTableId === table.id && selectedHour === h
+                  if (isCoveredByRes) return null
 
                   return (
                     <div
                       key={`${table.id}-${h}`}
                       className={`cursor-pointer transition-colors ${
                         !table.active ? "bg-slate-50 cursor-not-allowed" : "bg-white hover:bg-slate-50"
-                      } ${
-                        isSlotSelected ? "z-20 ring-2 ring-inset ring-blue-500" : ""
                       }`}
                       style={{ gridRow: rowIndex, gridColumn: i + 2 }}
                       onClick={() => {
@@ -235,9 +215,7 @@ export default function TimelineView({ data }: { data: TableData[] }) {
         </div>
       </div>
 
-      {/* Panel Inferior: Detalle de Mesa o Vista Global por Hora */}
       <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-        {/* Caso 1: Se usó el slider y hay un horario global activo */}
         {currentHour !== null ? (
           <div className="space-y-3">
             <div className="flex justify-between items-center border-b pb-2">
@@ -286,7 +264,6 @@ export default function TimelineView({ data }: { data: TableData[] }) {
             )}
           </div>
         ) : selectedTable ? (
-          /* Caso 2: Se seleccionó una mesa o casilla específica */
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-lg">Detalle: Mesa #{selectedTable.name}</h3>
@@ -307,6 +284,10 @@ export default function TimelineView({ data }: { data: TableData[] }) {
                 <span className="font-semibold">Reservas Hoy:</span>{" "}
                 {selectedTable.reservations.length}
               </p>
+              <p>
+                <span className="font-semibold">Ocupantes Totales:</span>{" "}
+                {selectedTable.reservations.reduce((sum, r) => sum + r.occupants, 0)}
+              </p>
             </div>
 
             {selectedReservation ? (
@@ -326,8 +307,11 @@ export default function TimelineView({ data }: { data: TableData[] }) {
                     Notas: {selectedReservation.notes}
                   </p>
                 )}
+                <Link href={`/reservations/${selectedReservation.id}/edit`} className="inline-block mt-3 text-blue-600 text-sm hover:underline">
+                    Editar reserva
+                </Link>
               </div>
-            ) : selectedTable.active ? (
+            ) : (
               <Link
                 href={`/reservations?date=${new Date().toISOString().split("T")[0]}&time=${
                   selectedHour ? `${selectedHour}:00` : "08:00"
@@ -336,10 +320,6 @@ export default function TimelineView({ data }: { data: TableData[] }) {
               >
                 Crear Reserva en este horario ({selectedHour ? `${selectedHour}:00 - ${selectedHour + 1}:00` : "Selecciona hora"})
               </Link>
-            ) : (
-              <p className="text-sm text-slate-500 mt-2">
-                Esta mesa está inactiva y no permite nuevas reservas.
-              </p>
             )}
           </div>
         ) : (

@@ -1,22 +1,18 @@
 "use server"
 
+import { auth } from "../auth"
 import { prisma, Status } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { reservationSchema } from "@/lib/schemas"
 
 export async function createReservation(rawData: unknown) {
-  console.log("DEBUG: rawData en createReservation:", JSON.stringify(rawData, null, 2));
-  
-  // Validamos con el schema
   const data = reservationSchema.parse(rawData);
-  console.log("DEBUG: Datos parseados por Zod:", JSON.stringify(data, null, 2));
-
 
   const existing = await prisma.reservation.findFirst({
     where: {
       tableId: data.tableId,
       date: data.date,
-      status: { not: Status.CANCELLED },
+      status: { notIn: [Status.CANCELLED, Status.MOVED] },
       startHour: { lt: data.endHour },
       endHour: { gt: data.startHour }
     }
@@ -32,15 +28,67 @@ export async function createReservation(rawData: unknown) {
       } 
   });
   
-  try { revalidatePath("/reservations"); } catch (e) { console.warn("revalidatePath failed"); }
+  revalidatePath("/reservations");
 }
 
-export async function getReservations(options: { date?: string, sort?: 'asc' | 'desc' } = {}) {
+export async function getReservations(options: { date?: string, sort?: 'asc' | 'desc', tableId?: string } = {}) {
+  const where: any = {}
+  if (options.date) where.date = options.date
+  if (options.tableId) where.tableId = options.tableId
+  
   return await prisma.reservation.findMany({
-    where: options.date ? { date: options.date } : {},
+    where,
     include: { user: true, table: true },
     orderBy: { createdAt: options.sort || 'desc' }
   })
+}
+
+export async function getReservationById(id: string) {
+    return await prisma.reservation.findUnique({
+        where: { id },
+        include: { table: true }
+    })
+}
+
+export async function updateReservation(id: string, data: { tableId: string; date: string; startHour: number; endHour: number; customerName: string; occupants: number; notes?: string | null; status: Status }) {
+  const oldReservation = await prisma.reservation.findUnique({ where: { id } })
+  if (!oldReservation) throw new Error("Reserva no encontrada")
+
+  // Si cambia de mesa, lógica especial
+  if (oldReservation.tableId !== data.tableId) {
+      // 1. Verificar disponibilidad en la nueva mesa
+      const existing = await prisma.reservation.findFirst({
+        where: {
+          tableId: data.tableId,
+          date: data.date,
+          status: { notIn: [Status.CANCELLED, Status.MOVED] },
+          startHour: { lt: data.endHour },
+          endHour: { gt: data.startHour }
+        }
+      });
+      if (existing) throw new Error("Mesa no disponible.");
+
+      // 2. Transacción
+      await prisma.$transaction([
+          prisma.reservation.update({ where: { id }, data: { status: Status.MOVED } }),
+          prisma.reservation.create({ data: { ...data, userId: oldReservation.userId } })
+      ])
+  } else {
+      // Solo actualización normal
+      await prisma.reservation.update({ where: { id }, data })
+  }
+
+  revalidatePath("/reservations")
+  revalidatePath("/reservations/history")
+}
+
+export async function deleteReservation(id: string) {
+  const session = await auth()
+  if (session?.user?.role !== 'ADMIN') throw new Error("No autorizado")
+  
+  await prisma.reservation.delete({ where: { id } })
+  revalidatePath("/reservations")
+  revalidatePath("/reservations/history")
 }
 
 export async function updateReservationStatus(id: string, status: Status) {
@@ -49,6 +97,7 @@ export async function updateReservationStatus(id: string, status: Status) {
     data: { status } 
   })
   revalidatePath("/reservations")
+  revalidatePath("/reservations/history")
 }
 
 export async function getReservationsByDate(date: Date) {
@@ -57,7 +106,7 @@ export async function getReservationsByDate(date: Date) {
   return await prisma.reservation.findMany({
     where: {
       date: dateStr,
-      status: { not: Status.CANCELLED }
+      status: { notIn: [Status.CANCELLED, Status.MOVED] }
     },
     include: { user: true, table: true },
     orderBy: { startHour: 'asc' }
