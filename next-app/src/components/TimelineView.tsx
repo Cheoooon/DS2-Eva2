@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
+import { STATUS_LABELS } from "@/lib/constants"
 
 interface Reservation {
   id: string
@@ -297,7 +298,7 @@ export default function TimelineView({ data }: { data: TableData[] }) {
                   {selectedReservation.occupants} personas
                 </p>
                 <p className="text-xs text-slate-500">
-                  Estado: {selectedReservation.status}
+                  Estado: {STATUS_LABELS[selectedReservation.status as keyof typeof STATUS_LABELS]}
                 </p>
                 <p className="text-sm mt-2 font-medium">
                   Horario: {selectedReservation.startHour}:00 - {selectedReservation.endHour}:00

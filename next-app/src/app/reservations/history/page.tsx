@@ -1,5 +1,6 @@
 import { getReservations } from "@/lib/actions/reservation"
 import { getTables } from "@/lib/actions/table"
+import { STATUS_LABELS } from "@/lib/constants"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { Card } from "@/components/ui/Card"
@@ -57,7 +58,7 @@ export default async function ReservationHistoryPage(props: { searchParams: Prom
                     res.status === 'CANCELLED' ? 'bg-red-100' :
                     'bg-blue-100'
                 }`}>
-                    {res.status}
+                    {STATUS_LABELS[res.status as keyof typeof STATUS_LABELS]}
                 </span>
                 <Link href={`/reservations/${res.id}/edit`} className="text-sm text-blue-600 hover:underline">Editar</Link>
               </div>
