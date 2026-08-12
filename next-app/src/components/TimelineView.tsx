@@ -202,11 +202,15 @@ export default function TimelineView({ data, isAdmin }: { data: TableData[], isA
 
                   if (isCoveredByRes) return null
 
+                  const isSlotSelected = selectedTableId === table.id && selectedHour === h
+
                   return (
                     <div
                       key={`${table.id}-${h}`}
                       className={`cursor-pointer transition-colors ${
                         !table.active ? "bg-slate-50 cursor-not-allowed" : "bg-white hover:bg-slate-50"
+                      } ${
+                        isSlotSelected ? "z-20 ring-2 ring-inset ring-blue-500" : ""
                       }`}
                       style={{ gridRow: rowIndex, gridColumn: i + 2 }}
                       onClick={() => {
