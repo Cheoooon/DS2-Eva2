@@ -56,13 +56,13 @@ export function ReservationActions({ reservation, isAdmin }: ReservationActionsP
                     {Object.entries(STATUS_LABELS)
                         .filter(([key]) => key !== 'MOVED' && key !== reservation.status)
                         .map(([key, label]) => (
-                            <Button 
+                            <button 
                                 key={key}
                                 onClick={() => handleStatusChange(key as Status)}
-                                className={`${STATUS_COLORS[key as Status]} w-full`}
+                                className={`${STATUS_COLORS[key as Status]} px-4 py-2 rounded-lg font-medium w-full`}
                             >
                                 {label}
-                            </Button>
+                            </button>
                         ))
                     }
                     <Button onClick={() => setShowStatusModal(false)} className="bg-slate-200 text-slate-800 hover:bg-slate-300 mt-2">Cancelar</Button>
