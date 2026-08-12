@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
-import { STATUS_LABELS } from "@/lib/constants"
+import { STATUS_LABELS, STATUS_COLORS } from "@/lib/constants"
 import { ReservationActions } from "@/components/ReservationActions"
+import { Status } from "../../prisma/generated/prisma/client"
 
 interface Reservation {
   id: string
@@ -163,6 +164,11 @@ export default function TimelineView({ data, isAdmin }: { data: TableData[], isA
                     const duration = Math.max(1, resAtStart.endHour - resAtStart.startHour)
                     const colStart = h - 8 + 2
                     
+                    const isSelected =
+                      selectedTableId === table.id &&
+                      selectedHour !== null && selectedHour >= resAtStart.startHour &&
+                      selectedHour < resAtStart.endHour
+
                     return (
                       <div
                         key={resAtStart.id}
@@ -181,11 +187,10 @@ export default function TimelineView({ data, isAdmin }: { data: TableData[], isA
                       >
                         <div
                           className={`w-full h-full text-xs rounded flex items-center justify-center font-semibold min-w-0 overflow-hidden transition-all ${
-                              resAtStart.status === 'PENDING' ? 'bg-slate-200 text-slate-800' :
-                              resAtStart.status === 'IN_PROGRESS' ? 'bg-yellow-200 text-yellow-900' :
-                              resAtStart.status === 'COMPLETED' ? 'bg-green-200 text-green-900' :
-                              'bg-blue-200 text-blue-900'
-                          }`}
+                              isSelected
+                              ? "ring-2 ring-blue-500 ring-inset shadow-md"
+                              : ""
+                          } ${STATUS_COLORS[resAtStart.status as Status]}`}
                         >
                           <span className="truncate px-1 block w-full text-center">
                             {resAtStart.customerName}
