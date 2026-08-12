@@ -65,7 +65,7 @@ export function ReservationActions({ reservation, isAdmin }: ReservationActionsP
                             </button>
                         ))
                     }
-                    <Button onClick={() => setShowStatusModal(false)} className="bg-slate-200 text-slate-800 hover:bg-slate-300 mt-2">Cancelar</Button>
+                    <button onClick={() => setShowStatusModal(false)} className="bg-slate-200 text-slate-800 mt-2 px-4 py-2 rounded-lg font-medium w-full cursor-pointer hover:opacity-80 transition-opacity">Cancelar</button>
                 </div>
             </div>
           </div>
@@ -76,7 +76,7 @@ export function ReservationActions({ reservation, isAdmin }: ReservationActionsP
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm">
                 <h3 className="text-lg font-bold mb-4">¿Eliminar reserva?</h3>
                 <div className="flex gap-2">
-                    <Button onClick={() => setConfirmDelete(false)} className="bg-slate-200 text-slate-800 hover:bg-slate-300">Cancelar</Button>
+                    <button onClick={() => setConfirmDelete(false)} className="bg-slate-200 text-slate-800 px-4 py-2 rounded-lg font-medium cursor-pointer hover:opacity-80 transition-opacity">Cancelar</button>
                     <Button onClick={async () => {
                         try {
                             await deleteReservation(reservation.id)
