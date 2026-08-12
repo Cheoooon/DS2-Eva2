@@ -9,7 +9,7 @@ export async function getReservationsForTable(tableId: string, date: Date) {
     where: {
       tableId,
       date: dateStr,
-      status: { not: Status.CANCELLED }
+      status: { in: [Status.PENDING, Status.IN_PROGRESS, Status.COMPLETED] }
     },
     select: {
         startHour: true,
