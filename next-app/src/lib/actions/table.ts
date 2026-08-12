@@ -10,15 +10,34 @@ export async function createTable(data: { name: string; capacity: number }) {
 }
 
 export async function getTables() {
-  return await prisma.table.findMany()
+  return await prisma.table.findMany({
+    include: { reservations: true }
+  })
+}
+export async function getTableById(id: string) {
+  return await prisma.table.findUnique({ where: { id } })
 }
 
 export async function updateTable(id: string, data: { name?: string; capacity?: number; active?: boolean }) {
+  if (data.active === false) {
+    const tableWithReservations = await prisma.reservation.findFirst({
+      where: { tableId: id, status: { not: 'CANCELLED' } }
+    })
+    if (tableWithReservations) {
+      throw new Error("No se puede desactivar una mesa con reservas activas.")
+    }
+  }
   await prisma.table.update({ where: { id }, data })
   revalidatePath("/tables")
 }
 
 export async function deleteTable(id: string) {
+  const tableWithReservations = await prisma.reservation.findFirst({
+    where: { tableId: id }
+  })
+  if (tableWithReservations) {
+    throw new Error("No se puede borrar una mesa con reservas asociadas.")
+  }
   await prisma.table.delete({ where: { id } })
   revalidatePath("/tables")
 }

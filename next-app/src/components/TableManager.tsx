@@ -12,11 +12,13 @@ type TableWithReservations = Table & { reservations: Reservation[] }
 export default function TableManager({ tables }: { tables: TableWithReservations[] }) {
   const router = useRouter()
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+
   return (
     <div className="p-4">
       <div className="mb-4 flex justify-end">
         <Button onClick={() => router.push("/tables/new")}>Nueva Mesa</Button>
       </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
       {tables.map((table: TableWithReservations) => (
         <div key={table.id} className="relative bg-white p-4 rounded-lg shadow-sm border border-slate-200 flex justify-between items-center">
           <div>
@@ -30,7 +32,14 @@ export default function TableManager({ tables }: { tables: TableWithReservations
             <button onClick={() => router.push(`/tables/${table.id}/edit`)} className="p-2 text-slate-500 hover:text-green-600 transition">
                <Edit2 size={18} />
             </button>
-            <button onClick={() => updateTable(table.id, { active: !table.active })} className="p-2 text-slate-500 hover:text-blue-600 transition">
+            <button onClick={async () => {
+                try {
+                    await updateTable(table.id, { active: !table.active })
+                    router.refresh()
+                } catch (e: any) {
+                    alert(e.message)
+                }
+            }} className="p-2 text-slate-500 hover:text-blue-600 transition">
               <Power size={18} />
             </button>
             {table.reservations?.length === 0 && (
@@ -71,6 +80,7 @@ export default function TableManager({ tables }: { tables: TableWithReservations
           </div>
         </div>
       ))}
+      </div>
     </div>
   )
 }
