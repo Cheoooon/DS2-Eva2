@@ -77,8 +77,12 @@ export default function ReservationForm({
   const [success, setSuccess] = useState(false)
   const router = useRouter()
 
-  const { register, handleSubmit, formState: { isSubmitting, errors }, reset, setValue, getValues, setError: setFormError } = useForm<ReservationFormData>({
-    resolver: zodResolver(reservationSchema) as any,
+  const formSchema = useMemo(() => {
+    return initialData ? reservationSchema.extend({ status: z.string() }) : reservationSchema;
+  }, [initialData]);
+
+  const { register, handleSubmit, formState: { isSubmitting, errors }, reset, setValue, getValues, setError: setFormError } = useForm<any>({
+    resolver: zodResolver(formSchema),
     defaultValues: initialData || { 
       userId, 
       tableId: selectedTableId,
@@ -212,7 +216,6 @@ export default function ReservationForm({
   }
 
   const onSubmitHandler = async (data: ReservationFormData) => {
-    console.log("DEBUG: Datos enviados desde el formulario:", data);
     setError(null)
     setSuccess(false)
 
