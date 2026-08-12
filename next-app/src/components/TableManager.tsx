@@ -17,9 +17,8 @@ export default function TableManager({ tables }: { tables: TableWithReservations
       <div className="mb-4 flex justify-end">
         <Button onClick={() => router.push("/tables/new")}>Nueva Mesa</Button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
       {tables.map((table: TableWithReservations) => (
-        <div key={table.id} className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 flex justify-between items-center">
+        <div key={table.id} className="relative bg-white p-4 rounded-lg shadow-sm border border-slate-200 flex justify-between items-center">
           <div>
             <h3 className="font-bold text-lg">{table.name}</h3>
             <p className="text-sm text-slate-600">Capacidad: {table.capacity}</p>
@@ -36,11 +35,19 @@ export default function TableManager({ tables }: { tables: TableWithReservations
             </button>
             {table.reservations?.length === 0 && (
               confirmDeleteId === table.id ? (
-                <div className="flex gap-2">
-                    <button onClick={() => setConfirmDeleteId(null)} className="p-2 text-slate-500 hover:text-slate-700 transition">
-                        <X size={18} />
-                    </button>
-                    <button onClick={async () => {
+                <div className="absolute inset-0 bg-white/95 z-10 p-4 flex flex-col items-center justify-center rounded-lg border border-red-200">
+                  <p className="text-sm font-medium text-slate-800 mb-3 text-center">
+                    ¿Desea eliminar la mesa {table.name}?
+                  </p>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => setConfirmDeleteId(null)} 
+                      className="bg-slate-200 text-slate-800 hover:bg-slate-300 text-xs py-1 px-3"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      onClick={async () => {
                         try {
                             await deleteTable(table.id)
                             setConfirmDeleteId(null)
@@ -48,9 +55,12 @@ export default function TableManager({ tables }: { tables: TableWithReservations
                         } catch (e: any) {
                             alert(e.message)
                         }
-                    }} className="p-2 text-red-600 hover:text-red-800 transition">
-                        <Check size={18} />
-                    </button>
+                    }} 
+                      className="bg-red-600 text-white hover:bg-red-700 text-xs py-1 px-3"
+                    >
+                      Eliminar
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <button onClick={() => setConfirmDeleteId(table.id)} className="p-2 text-slate-500 hover:text-red-600 transition">
@@ -61,7 +71,6 @@ export default function TableManager({ tables }: { tables: TableWithReservations
           </div>
         </div>
       ))}
-      </div>
     </div>
   )
 }
