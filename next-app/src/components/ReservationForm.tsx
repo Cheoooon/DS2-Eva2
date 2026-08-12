@@ -41,14 +41,17 @@ export default function ReservationForm({
   const [selectedDate, setSelectedDate] = useState(
     initialDate || new Date().toISOString().split('T')[0]
   )
+  
+  // 1. Inicia en vacío salvo que venga 'initialTableId'
   const [selectedTableId, setSelectedTableId] = useState(
-    initialTableId || (tables[0]?.id ?? "")
+    initialTableId || ""
   )
   
   const [tablesReservations, setTablesReservations] = useState<
     Record<string, { start: number; end: number }[]>
   >({})
   
+  // 2. Inicia en null salvo que venga 'initialTime'
   const initialSelectionState = useMemo(() => {
     if (initialTime) {
       const hour = parseInt(initialTime.split(':')[0])
@@ -56,7 +59,7 @@ export default function ReservationForm({
         return { start: hour, end: hour + 1 }
       }
     }
-    return { start: 8, end: 9 }
+    return null
   }, [initialTime])
 
   const [selection, setSelection] = useState<{ start: number; end: number } | null>(initialSelectionState)
@@ -75,8 +78,8 @@ export default function ReservationForm({
       customerName: "",
       occupants: 1,
       notes: "",
-      startHour: initialSelectionState.start,
-      endHour: initialSelectionState.end
+      startHour: initialSelectionState?.start ?? 8,
+      endHour: initialSelectionState?.end ?? 9
     } as any
   })
 
@@ -100,7 +103,7 @@ export default function ReservationForm({
     setValue("date", selectedDate)
   }, [selectedTableId, selectedDate, setValue])
 
-  // 2. Cargar reservas de base de datos (YA NO LIMPIA LA SELECCIÓN AQUÍ)
+  // 2. Cargar reservas de base de datos
   useEffect(() => {
     const fetchAllReservations = async () => {
       if (!selectedDate) return;
@@ -156,16 +159,18 @@ export default function ReservationForm({
     sortedTables.find(t => t.id === selectedTableId), 
   [sortedTables, selectedTableId])
 
+  // Limpia selección si la mesa previamente elegida ya no existe
   useEffect(() => {
-    if (sortedTables.length > 0) {
+    if (selectedTableId && sortedTables.length > 0) {
       const tableExists = sortedTables.some(t => t.id === selectedTableId)
       if (!tableExists) {
-        setSelectedTableId(sortedTables[0].id)
+        setSelectedTableId("")
       }
     }
   }, [sortedTables, selectedTableId])
 
   const reservedSlots = useMemo(() => {
+    if (!selectedTableId) return []
     return tablesReservations[selectedTableId] || []
   }, [tablesReservations, selectedTableId])
 
@@ -173,7 +178,7 @@ export default function ReservationForm({
     return reservedSlots.some(r => hour >= r.start && hour < r.end)
   }
 
-  // 3. Protección anti-solapamiento: Si la selección choca con la BD recién cargada, se borra.
+  // Protección anti-solapamiento
   useEffect(() => {
     if (selection) {
         const hasConflict = reservedSlots.some(r => 
@@ -188,7 +193,7 @@ export default function ReservationForm({
   }, [reservedSlots, selection])
 
   const handleSlotClick = (hour: number) => {
-    if (isSlotReserved(hour)) return;
+    if (!selectedTableId || isSlotReserved(hour)) return;
 
     if (!selection || isRangeComplete) {
       const newRange = { start: hour, end: hour + 1 }
@@ -224,6 +229,11 @@ export default function ReservationForm({
     setError(null)
     setSuccess(false)
 
+    if (!selectedTableId) {
+        setError("Por favor selecciona una mesa.")
+        return
+    }
+
     if (!selection) {
         setError("Por favor selecciona un horario.")
         return
@@ -241,6 +251,7 @@ export default function ReservationForm({
       await createReservation(data)
       setSuccess(true)
       setSelection(null)
+      setSelectedTableId("")
       setIsRangeComplete(false)
       
       reset({
@@ -281,7 +292,6 @@ export default function ReservationForm({
           type="date" 
           value={selectedDate} 
           onChange={(e) => {
-            // AQUÍ se limpia la selección al cambiar manualmente la fecha
             setSelectedDate(e.target.value)
             setSelection(null)
             setIsRangeComplete(false)
@@ -306,15 +316,18 @@ export default function ReservationForm({
           {AVAILABLE_HOURS.map((hour) => {
             const reserved = isSlotReserved(hour)
             const isSelected = selection && hour >= selection.start && hour < selection.end
+            const isDisabled = !selectedTableId || reserved
 
             return (
               <button
                 key={hour}
                 type="button"
-                disabled={reserved}
+                disabled={isDisabled}
                 onClick={() => handleSlotClick(hour)}
                 className={`relative p-3 text-xs font-medium rounded-lg border transition-all flex flex-col items-center justify-center gap-1 ${
-                  reserved
+                  !selectedTableId
+                    ? "bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed"
+                    : reserved
                     ? "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed line-through"
                     : isSelected
                     ? "bg-blue-600 border-blue-600 text-white shadow-md scale-[1.02]"
@@ -322,7 +335,7 @@ export default function ReservationForm({
                 }`}
               >
                 <span>{hour}:00 - {hour + 1}:00</span>
-                {reserved && (
+                {selectedTableId && reserved && (
                   <span className="absolute bottom-1 right-1 text-[9px] font-normal text-slate-400 bg-slate-50 px-1 rounded">
                     Ocupado
                   </span>
@@ -333,7 +346,9 @@ export default function ReservationForm({
         </div>
 
         <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700">
-          {selection ? (
+          {!selectedTableId ? (
+            <p className="text-slate-500">Primero selecciona una mesa para habilitar los horarios.</p>
+          ) : selection ? (
             <p>
               <strong className="text-slate-900">Selección:</strong> {selection.start}:00 a {selection.end}:00{" "}
               <span className="text-slate-500 font-normal">
@@ -376,7 +391,7 @@ export default function ReservationForm({
         <textarea {...register("notes")} className="w-full px-3 py-2 border border-slate-300 rounded-lg" rows={3} placeholder="Notas adicionales..." />
       </div>
       
-      <Button type="submit" disabled={isSubmitting || !selection} className="w-full">
+      <Button type="submit" disabled={isSubmitting || !selectedTableId || !selection} className="w-full">
         Confirmar Reserva
       </Button>
     </form>
