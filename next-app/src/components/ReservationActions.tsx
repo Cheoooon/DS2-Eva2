@@ -32,6 +32,11 @@ export function ReservationActions({ reservation, isAdmin }: ReservationActionsP
     }
   }
 
+  const getStatusColor = (key: string, isCurrent: boolean) => {
+      if (isCurrent) return "text-white ";
+      return "text-slate-900 ";
+  }
+
   return (
     <div className="relative flex items-center gap-2">
       <Link href={`/reservations/${reservation.id}/edit`} className="p-2 text-slate-500 hover:text-green-600 transition">
@@ -55,15 +60,25 @@ export function ReservationActions({ reservation, isAdmin }: ReservationActionsP
                 <div className="flex flex-col gap-2">
                     {Object.entries(STATUS_LABELS)
                         .filter(([key]) => key !== 'MOVED')
-                        .map(([key, label]) => (
-                            <Button 
-                                key={key}
-                                onClick={() => handleStatusChange(key as Status)}
-                                className={key === reservation.status ? "bg-blue-600" : "bg-slate-100 text-slate-900 hover:bg-slate-200"}
-                            >
-                                {label}
-                            </Button>
-                        ))
+                        .map(([key, label]) => {
+                            const isCurrent = key === reservation.status;
+                            const colorClass = 
+                                key === 'PENDING' ? (isCurrent ? 'bg-slate-600 text-white' : 'bg-slate-100 text-slate-900 hover:bg-slate-200') :
+                                key === 'IN_PROGRESS' ? (isCurrent ? 'bg-yellow-600 text-white' : 'bg-yellow-100 text-yellow-900 hover:bg-yellow-200') :
+                                key === 'COMPLETED' ? (isCurrent ? 'bg-green-600 text-white' : 'bg-green-100 text-green-900 hover:bg-green-200') :
+                                key === 'CANCELLED' ? (isCurrent ? 'bg-red-600 text-white' : 'bg-red-100 text-red-900 hover:bg-red-200') :
+                                (isCurrent ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-900 hover:bg-blue-200');
+
+                            return (
+                                <Button 
+                                    key={key}
+                                    onClick={() => handleStatusChange(key as Status)}
+                                    className={colorClass}
+                                >
+                                    {label}
+                                </Button>
+                            )
+                        })
                     }
                     <Button onClick={() => setShowStatusModal(false)} className="bg-slate-200 text-slate-800 hover:bg-slate-300 mt-2">Cancelar</Button>
                 </div>
