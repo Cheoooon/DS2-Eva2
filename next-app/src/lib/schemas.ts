@@ -8,6 +8,7 @@ export const loginSchema = z.object({
 export const tableSchema = z.object({
   name: z.string().min(1, "Nombre requerido"),
   capacity: z.coerce.number().int().min(1, "La capacidad debe ser al menos 1"),
+  active: z.boolean().default(true),
 });
 export const reservationSchema = z.object({
   userId: z.string(),

@@ -70,7 +70,7 @@ export default function ReservationForm({
   const router = useRouter()
 
   const { register, handleSubmit, formState: { isSubmitting, errors }, reset, setValue, getValues, setError: setFormError } = useForm<ReservationFormData>({
-    resolver: zodResolver(reservationSchema),
+    resolver: zodResolver(reservationSchema) as any,
     defaultValues: { 
       userId, 
       tableId: selectedTableId,
@@ -80,7 +80,7 @@ export default function ReservationForm({
       notes: "",
       startHour: initialSelectionState?.start ?? 8,
       endHour: initialSelectionState?.end ?? 9
-    } as any
+    }
   })
 
   // 1. Sincronizar cambios de URL (Next.js Link/Router)
