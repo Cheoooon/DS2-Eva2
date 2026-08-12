@@ -44,23 +44,41 @@ export default async function ReservationHistoryPage(props: { searchParams: Prom
       <div className="grid gap-4">
         {reservations.map((res) => (
           <Card key={res.id}>
-            <div className="flex justify-between items-center gap-4">
-              <div>
-                <p className="font-medium">{res.customerName}</p>
-                <p className="text-sm text-slate-500">
-                  {res.date} · {res.startHour}:00 — {res.endHour}:00 · Creada: {res.createdAt ? new Date(res.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+            <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-2">
+                    <p className="font-bold text-lg">{res.customerName}</p>
+                    <span className={`text-xs font-semibold px-2 py-1 rounded ${
+                        res.status === 'PENDING' ? 'bg-slate-100' :
+                        res.status === 'IN_PROGRESS' ? 'bg-yellow-100' :
+                        res.status === 'COMPLETED' ? 'bg-green-100' :
+                        res.status === 'CANCELLED' ? 'bg-red-100' :
+                        'bg-blue-100'
+                    }`}>
+                        {STATUS_LABELS[res.status as keyof typeof STATUS_LABELS]}
+                    </span>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-slate-600">
+                    <p><span className="font-semibold">Mesa:</span> {res.table?.name || 'N/A'}</p>
+                    <p><span className="font-semibold">Personas:</span> {res.occupants}</p>
+                    <p><span className="font-semibold">Fecha:</span> {res.date}</p>
+                    <p><span className="font-semibold">Horario:</span> {res.startHour}:00 — {res.endHour}:00</p>
+                </div>
+                
+                {res.notes && (
+                    <p className="text-sm mt-3 bg-slate-50 p-2 rounded italic text-slate-600 border">
+                        <span className="font-semibold block not-italic">Notas:</span>
+                        {res.notes}
+                    </p>
+                )}
+                
+                <p className="text-xs text-slate-400 mt-3">
+                    Creada: {res.createdAt ? new Date(res.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                 </p>
               </div>
-              <div className="flex items-center gap-4">
-                <span className={`text-xs font-semibold px-2 py-1 rounded ${
-                    res.status === 'PENDING' ? 'bg-slate-100' :
-                    res.status === 'IN_PROGRESS' ? 'bg-yellow-100' :
-                    res.status === 'COMPLETED' ? 'bg-green-100' :
-                    res.status === 'CANCELLED' ? 'bg-red-100' :
-                    'bg-blue-100'
-                }`}>
-                    {STATUS_LABELS[res.status as keyof typeof STATUS_LABELS]}
-                </span>
+
+              <div className="flex items-center justify-end">
                 <ReservationActions reservation={res} isAdmin={session.user?.role === 'ADMIN'} />
               </div>
             </div>
