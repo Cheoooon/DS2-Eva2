@@ -17,7 +17,7 @@ export default async function DashboardPage() {
       
       <h2 className="text-xl font-semibold mb-4">Ocupación de Mesas ({today.toLocaleDateString()})</h2>
       
-      <TimelineView data={dashboardData} />
+      <TimelineView data={dashboardData} isAdmin={session.user?.role === 'ADMIN'} />
     </div>
   )
 }

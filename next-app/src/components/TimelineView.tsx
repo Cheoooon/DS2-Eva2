@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { STATUS_LABELS } from "@/lib/constants"
+import { ReservationActions } from "@/components/ReservationActions"
 
 interface Reservation {
   id: string
@@ -22,7 +23,7 @@ interface TableData {
   reservations: Reservation[]
 }
 
-export default function TimelineView({ data }: { data: TableData[] }) {
+export default function TimelineView({ data, isAdmin }: { data: TableData[], isAdmin: boolean }) {
   const [currentHour, setCurrentHour] = useState<number | null>(null)
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null)
   const [selectedHour, setSelectedHour] = useState<number | null>(null)
@@ -308,9 +309,9 @@ export default function TimelineView({ data }: { data: TableData[] }) {
                     Notas: {selectedReservation.notes}
                   </p>
                 )}
-                <Link href={`/reservations/${selectedReservation.id}/edit`} className="inline-block mt-3 text-blue-600 text-sm hover:underline">
-                    Editar reserva
-                </Link>
+                <div className="mt-3">
+                    <ReservationActions reservation={selectedReservation} isAdmin={isAdmin} />
+                </div>
               </div>
             ) : (
               <Link
