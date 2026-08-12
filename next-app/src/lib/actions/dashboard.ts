@@ -18,6 +18,12 @@ export async function getDashboardData(date: Date) {
     orderBy: { name: 'asc' }
   })
 
+  // Ordenar mesas: activas primero, luego inactivas
+  tables.sort((a, b) => {
+    if (a.active === b.active) return a.name.localeCompare(b.name);
+    return a.active ? -1 : 1;
+  });
+
   return tables.map(t => ({
       ...t,
       reservations: t.reservations.map(r => ({

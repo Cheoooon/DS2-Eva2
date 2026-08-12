@@ -143,7 +143,7 @@ export default function TimelineView({ data }: { data: TableData[] }) {
                 <div
                   className={`font-medium p-2 bg-white flex items-center cursor-pointer truncate ${
                     selectedTableId === table.id && selectedHour === null ? "bg-blue-50" : ""
-                  }`}
+                  } ${!table.active ? "text-slate-400 line-through bg-slate-50" : ""}`}
                   style={{ gridRow: rowIndex }}
                   onClick={() => handleTableClick(table.id)}
                 >
@@ -170,12 +170,13 @@ export default function TimelineView({ data }: { data: TableData[] }) {
                         key={resAtStart.id}
                         className={`flex items-center justify-center p-0.5 cursor-pointer min-w-0 overflow-hidden ${
                           isSelected ? "z-20" : "z-10"
-                        }`}
+                        } ${!table.active ? "opacity-50" : ""}`}
                         style={{
                           gridRow: rowIndex,
                           gridColumn: `${colStart} / span ${duration}`,
                         }}
                         onClick={(e) => {
+                          if (!table.active) return
                           e.stopPropagation()
                           setSelectedTableId(table.id)
                           setSelectedHour(resAtStart.startHour)
@@ -206,11 +207,16 @@ export default function TimelineView({ data }: { data: TableData[] }) {
                   return (
                     <div
                       key={`${table.id}-${h}`}
-                      className={`bg-white cursor-pointer hover:bg-slate-50 transition-colors ${
+                      className={`cursor-pointer transition-colors ${
+                        !table.active ? "bg-slate-50 cursor-not-allowed" : "bg-white hover:bg-slate-50"
+                      } ${
                         isSlotSelected ? "z-20 ring-2 ring-inset ring-blue-500" : ""
                       }`}
                       style={{ gridRow: rowIndex, gridColumn: i + 2 }}
-                      onClick={() => handleSlotClick(table.id, h)}
+                      onClick={() => {
+                        if (!table.active) return
+                        handleSlotClick(table.id, h)
+                      }}
                     />
                   )
                 })}
@@ -292,10 +298,6 @@ export default function TimelineView({ data }: { data: TableData[] }) {
                 <span className="font-semibold">Reservas Hoy:</span>{" "}
                 {selectedTable.reservations.length}
               </p>
-              <p>
-                <span className="font-semibold">Ocupantes Totales:</span>{" "}
-                {selectedTable.reservations.reduce((sum, r) => sum + r.occupants, 0)}
-              </p>
             </div>
 
             {selectedReservation ? (
@@ -316,7 +318,7 @@ export default function TimelineView({ data }: { data: TableData[] }) {
                   </p>
                 )}
               </div>
-            ) : (
+            ) : selectedTable.active ? (
               <Link
                 href={`/reservations?date=${new Date().toISOString().split("T")[0]}&time=${
                   selectedHour ? `${selectedHour}:00` : "08:00"
@@ -325,10 +327,13 @@ export default function TimelineView({ data }: { data: TableData[] }) {
               >
                 Crear Reserva en este horario ({selectedHour ? `${selectedHour}:00 - ${selectedHour + 1}:00` : "Selecciona hora"})
               </Link>
+            ) : (
+              <p className="text-sm text-slate-500 mt-2">
+                Esta mesa está inactiva y no permite nuevas reservas.
+              </p>
             )}
           </div>
         ) : (
-          /* Caso 3: Estado inicial sin selección */
           <p className="text-slate-500 text-sm">
             Selecciona una mesa, una hora en la grilla o desliza el control superior para ver detalles.
           </p>
