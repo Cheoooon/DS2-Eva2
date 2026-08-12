@@ -50,9 +50,11 @@ export async function getReservationById(id: string) {
     })
 }
 
-export async function updateReservation(id: string, data: { tableId: string; date: string; startHour: number; endHour: number; customerName: string; occupants: number; notes?: string | null; status: Status }) {
+export async function updateReservation(id: string, data: { tableId: string; date: string; startHour: number; endHour: number; customerName: string; occupants: number; notes?: string | null; status: any }) {
   const oldReservation = await prisma.reservation.findUnique({ where: { id } })
   if (!oldReservation) throw new Error("Reserva no encontrada")
+
+  const status = data.status === 'MOVED' ? oldReservation.status : data.status
 
   // Si cambia de mesa, lógica especial
   if (oldReservation.tableId !== data.tableId) {
@@ -71,11 +73,11 @@ export async function updateReservation(id: string, data: { tableId: string; dat
       // 2. Transacción
       await prisma.$transaction([
           prisma.reservation.update({ where: { id }, data: { status: Status.MOVED } }),
-          prisma.reservation.create({ data: { ...data, userId: oldReservation.userId } })
+          prisma.reservation.create({ data: { ...data, status, userId: oldReservation.userId } })
       ])
   } else {
       // Solo actualización normal
-      await prisma.reservation.update({ where: { id }, data })
+      await prisma.reservation.update({ where: { id }, data: { ...data, status } })
   }
 
   revalidatePath("/reservations")
