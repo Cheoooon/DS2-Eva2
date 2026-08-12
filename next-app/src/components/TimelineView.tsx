@@ -78,14 +78,16 @@ export default function TimelineView({ data }: { data: TableData[] }) {
       {/* Contenedor Grid Timeline */}
       <div className="overflow-x-auto p-4 bg-white rounded-lg shadow" ref={gridRef}>
         <div
-          className="grid bg-slate-200 gap-px border-t border-l border-slate-200 table-fixed"
+          className="grid bg-slate-200 gap-px border-t border-l border-r border-b border-slate-200 table-fixed"
           style={{
             gridTemplateColumns: `100px repeat(${hours.length}, 1fr)`,
           }}
         >
           {/* Header Slider Label */}
-          <div className="text-xs font-bold bg-slate-50 flex items-center justify-center p-2 text-center truncate">
-            {currentHour !== null ? `Hora: ${currentHour}:00` : "Desliza para hora"}
+          <div className="text-[10px] font-bold bg-slate-50 flex items-center justify-center p-1 text-center border-b border-slate-300 w-full h-[40px]">
+            <span className="leading-[1] px-1">
+              {currentHour !== null ? <>{currentHour}:00<br />{currentHour + 1}:00</> : <>Selecciona<br />horario</>}
+            </span>
           </div>
 
           {/* Slider alineado con las columnas de horas */}
@@ -116,17 +118,18 @@ export default function TimelineView({ data }: { data: TableData[] }) {
           </div>
 
           {/* Table Header */}
-          <div className="bg-slate-50 font-bold p-2 text-center truncate">Mesa</div>
+          <div className="bg-slate-50 font-bold p-2 text-center truncate border-b border-slate-300">Mesa</div>
 
           {/* Hours Headers */}
           {hours.map((h) => (
-            <div
-              key={h}
-              className={`text-center text-sm font-semibold p-2 bg-slate-50 truncate ${
-                currentHour === h ? "bg-blue-100 text-blue-700 font-bold" : ""
-              }`}
-            >
-              {h}:00
+            <div key={h} className="flex flex-col items-center justify-center border-r border-l border-white border-b border-slate-300 py-1">
+              <span className={`text-[10px] font-medium px-2 py-0 rounded-full ${currentHour === h ? "bg-blue-200 text-blue-800 font-bold" : "bg-slate-200 text-slate-700"}`}>
+                {h}:00
+              </span>
+              <div className="w-4 h-px bg-slate-400 my-0"></div>
+              <span className={`text-[10px] font-medium px-2 py-0 rounded-full ${currentHour === h ? "bg-blue-200 text-blue-800 font-bold" : "bg-slate-200 text-slate-700"}`}>
+                {h + 1}:00
+              </span>
             </div>
           ))}
 
@@ -224,7 +227,7 @@ export default function TimelineView({ data }: { data: TableData[] }) {
           <div className="space-y-3">
             <div className="flex justify-between items-center border-b pb-2">
               <h3 className="font-bold text-lg">
-                Reservas activas a las {currentHour}:00
+                Reservas activas a las {currentHour}:00 - {currentHour + 1}:00
               </h3>
               <span className="text-sm bg-blue-100 text-blue-800 font-semibold px-2.5 py-0.5 rounded-full">
                 {activeReservationsAtHour.length} {activeReservationsAtHour.length === 1 ? "reserva" : "reservas"}
@@ -320,7 +323,7 @@ export default function TimelineView({ data }: { data: TableData[] }) {
                 }&table=${selectedTableId}`}
                 className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-2 text-sm font-medium"
               >
-                Crear Reserva en este horario ({selectedHour ? `${selectedHour}:00` : "Selecciona hora"})
+                Crear Reserva en este horario ({selectedHour ? `${selectedHour}:00 - ${selectedHour + 1}:00` : "Selecciona hora"})
               </Link>
             )}
           </div>

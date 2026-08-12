@@ -9,7 +9,6 @@ import DateFilter from "@/components/DateFilter"
 export default async function ReservationsPage(props: { searchParams: Promise<{ date?: string, time?: string, table?: string }> }) {
   const searchParams = await props.searchParams
   const dateStr = searchParams.date || new Date().toISOString().split('T')[0]
-  const timeStr = searchParams.time || "13:00"
   const date = new Date(dateStr + 'T00:00:00')
   
   const session = await auth()
@@ -20,22 +19,19 @@ export default async function ReservationsPage(props: { searchParams: Promise<{ 
     getTablesSorted(),
   ])
 
-  const activeTables = tables.filter((t) => t.active)
-
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Reservas</h1>
 
-      {activeTables.length > 0 && (
-        <Card className="mb-8 p-6 bg-slate-50">
-          <ReservationForm
-            tables={tables}
-            userId={session.user?.id ?? ""}
-            initialDate={searchParams.date}
-            initialTableId={searchParams.table}
-          />
-        </Card>
-      )}
+      <Card className="mb-8 p-6 bg-slate-50">
+        <h2 className="text-lg font-semibold mb-4">Nueva Reserva</h2>
+        <ReservationForm
+          tables={tables}
+          userId={session.user?.id ?? ""}
+          initialDate={searchParams.date}
+          initialTableId={searchParams.table}
+        />
+      </Card>
     
       <h2 className="text-2xl font-bold mb-6">Historial de reservas </h2>
     
@@ -44,7 +40,6 @@ export default async function ReservationsPage(props: { searchParams: Promise<{ 
         <DateFilter defaultValue={dateStr} />
       </div>
     
-
       <h2 className="text-lg font-semibold mb-4">Reservas el {date.toLocaleDateString()}</h2>
       {reservations.length === 0 ? (
         <p className="text-slate-500 mb-8">No hay reservas para esta fecha.</p>
@@ -69,8 +64,6 @@ export default async function ReservationsPage(props: { searchParams: Promise<{ 
           ))}
         </div>
       )}
-
-      
     </div>
   )
 }

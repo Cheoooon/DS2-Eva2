@@ -9,11 +9,13 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { reservationSchema } from "@/lib/schemas"
 import { createReservation } from "@/lib/actions/reservation"
 import { getReservationsForTable } from "@/lib/actions/reservation-query"
+import { TableSelector } from "./TableSelector"
 
 interface TableOption {
   id: string
   name: string
   capacity: number
+  active: boolean
 }
 
 export default function ReservationForm({ 
@@ -65,12 +67,6 @@ export default function ReservationForm({
   }, [selectedDate, selectedTableId]);
 
   const onSubmit = async (data: any) => {
-    const selectedTable = tables.find(t => t.id === selectedTableId);
-    if (selectedTable && data.occupants > selectedTable.capacity) {
-        setError(`La capacidad máxima de esta mesa es ${selectedTable.capacity} personas.`);
-        return;
-    }
-
     if (selectedSlots.length === 0) { 
         setError("Selecciona al menos una hora"); return; 
     }
@@ -107,14 +103,14 @@ export default function ReservationForm({
       <input type="hidden" {...register("userId")} />
       <input type="hidden" {...register("tableId")} />
       <input type="hidden" {...register("date")} />
-      <input type="hidden" {...register("startHour", { valueAsNumber: true })} />
-      <input type="hidden" {...register("endHour", { valueAsNumber: true })} />
       
       <div>
         <label className="block text-sm font-medium">Mesa</label>
-        <select value={selectedTableId} onChange={(e) => setSelectedTableId(e.target.value)} className="w-full p-2 border rounded">
-            {tables.map(t => <option key={t.id} value={t.id}>{t.name} ({t.capacity} pax)</option>)}
-        </select>
+        <TableSelector 
+            tables={tables} 
+            value={selectedTableId} 
+            onChange={setSelectedTableId} 
+        />
       </div>
       <div>
         <label className="block text-sm font-medium">Fecha</label>
@@ -151,6 +147,7 @@ export default function ReservationForm({
         <label className="block text-sm font-medium">Notas</label>
         <textarea {...register("notes")} className="w-full px-3 py-2 border border-slate-300 rounded-lg" rows={3} placeholder="Notas adicionales..." />
       </div>
+      
       <Button type="submit" disabled={isSubmitting}>Confirmar Reserva</Button>
     </form>
   )
