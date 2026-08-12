@@ -141,13 +141,22 @@ export default function TimelineView({ data }: { data: TableData[] }) {
               <div key={table.id} className="contents">
                 {/* Nombre de la mesa */}
                 <div
-                  className={`font-medium p-2 bg-white flex items-center cursor-pointer truncate ${
+                  className={`font-medium p-2 bg-white flex flex-col cursor-pointer truncate justify-between relative ${
                     selectedTableId === table.id && selectedHour === null ? "bg-blue-50" : ""
                   } ${!table.active ? "text-slate-400 line-through bg-slate-50" : ""}`}
                   style={{ gridRow: rowIndex }}
                   onClick={() => handleTableClick(table.id)}
                 >
                   <span className="truncate">#{table.name}</span>
+                  <div className="absolute bottom-1 right-1 flex items-center text-[10px] text-slate-500 font-normal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-0.5">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    {table.capacity}
+                  </div>
                 </div>
 
                 {/* Renderizado único: Celdas vacías o Bloques de Reserva */}
@@ -281,7 +290,7 @@ export default function TimelineView({ data }: { data: TableData[] }) {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-lg">Detalle: Mesa #{selectedTable.name}</h3>
-              <Link href="/tables" className="text-sm text-blue-600 hover:underline">
+              <Link href={`/tables/${selectedTable.id}/edit`} className="text-sm text-blue-600 hover:underline">
                 Editar Mesa
               </Link>
             </div>
