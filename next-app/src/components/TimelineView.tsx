@@ -323,14 +323,18 @@ export default function TimelineView({ data, isAdmin }: { data: TableData[], isA
                 </div>
               </div>
             ) : (
-              <Link
-                href={`/reservations?date=${new Date().toISOString().split("T")[0]}&time=${
-                  selectedHour ? `${selectedHour}:00` : "08:00"
-                }&table=${selectedTableId}`}
-                className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-2 text-sm font-medium"
-              >
-                Crear Reserva en este horario ({selectedHour ? `${selectedHour}:00 - ${selectedHour + 1}:00` : "Selecciona hora"})
-              </Link>
+              selectedTable?.active ? (
+                <Link
+                  href={`/reservations?date=${new Date().toISOString().split("T")[0]}&time=${
+                    selectedHour ? `${selectedHour}:00` : "08:00"
+                  }&table=${selectedTableId}`}
+                  className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-2 text-sm font-medium"
+                >
+                  Crear Reserva en este horario ({selectedHour ? `${selectedHour}:00 - ${selectedHour + 1}:00` : "Selecciona hora"})
+                </Link>
+              ) : (
+                <p className="text-sm text-slate-500 mt-2 italic">Esta mesa no está activa y no permite reservas.</p>
+              )
             )}
           </div>
         ) : (

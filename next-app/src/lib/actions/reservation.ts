@@ -7,6 +7,10 @@ import { reservationSchema } from "@/lib/schemas"
 
 export async function createReservation(rawData: unknown) {
   const data = reservationSchema.parse(rawData);
+  const table = await prisma.table.findUnique({ where: { id: data.tableId } });
+  if (!table || !table.active) {
+    throw new Error("No puede crear una reserva en esta mesa, se encuentra inhabilitada");
+  }
 
   const existing = await prisma.reservation.findFirst({
     where: {

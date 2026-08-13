@@ -16,9 +16,9 @@ export default async function DashboardPage(props: { searchParams: Promise<{ dat
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-2">Panel Principal</h1>
-      <DashboardDateSelector />
+      <p className="mb-6 text-slate-600">Bienvenido, {session.user?.name || session.user?.email}</p>
 
-      <h2 className="text-xl font-semibold mb-4">Ocupación de Mesas ({today.toLocaleDateString()})</h2>
+      <DashboardDateSelector />
 
 
       <TimelineView data={dashboardData} isAdmin={session.user?.role === 'ADMIN'} date={today} />
