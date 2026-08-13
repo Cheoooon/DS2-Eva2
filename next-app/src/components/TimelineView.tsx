@@ -5,6 +5,7 @@ import Link from "next/link"
 import { STATUS_LABELS, STATUS_COLORS } from "@/lib/constants"
 import { ReservationActions } from "@/components/ReservationActions"
 import { Status } from "../../prisma/generated/prisma/client"
+import { CurrentTimeIndicator } from "@/components/CurrentTimeIndicator"
 
 interface Reservation {
   id: string
@@ -63,6 +64,7 @@ export default function TimelineView({ data, isAdmin }: { data: TableData[], isA
     return () => window.removeEventListener("resize", updateWidth)
   }, [])
 
+
   const handleTableClick = (tableId: string) => {
     setSelectedTableId(tableId)
     setSelectedHour(null)
@@ -77,9 +79,9 @@ export default function TimelineView({ data, isAdmin }: { data: TableData[], isA
 
   return (
     <div className="space-y-6">
-      <div className="overflow-x-auto p-4 bg-white rounded-lg shadow" ref={gridRef}>
+      <div className="p-4 bg-slate-200 rounded-lg shadow border border-slate-200" ref={gridRef}>
         <div
-          className="grid bg-slate-200 gap-px border-t border-l border-r border-b border-slate-200 table-fixed"
+          className="overflow-x-auto relative grid gap-px table-fixed"
           style={{
             gridTemplateColumns: `100px repeat(${hours.length}, 1fr)`,
           }}
@@ -91,7 +93,7 @@ export default function TimelineView({ data, isAdmin }: { data: TableData[], isA
           </div>
 
           <div
-            className="col-span-15 p-2 bg-slate-100 flex items-center"
+            className="z-10 col-span-15 p-2 bg-slate-100 flex items-center"
             style={{
               paddingLeft: `${hourColWidth / 2 - 8}px`,
               paddingRight: `${hourColWidth / 2 - 8}px`,
@@ -119,7 +121,7 @@ export default function TimelineView({ data, isAdmin }: { data: TableData[], isA
           <div className="bg-slate-50 font-bold p-2 text-center truncate border-b border-slate-300">Mesa</div>
 
           {hours.map((h) => (
-            <div key={h} className="flex flex-col items-center justify-center border-r border-l border-white border-b border-slate-300 py-1">
+            <div key={h} data-hour={h} className="z-10 flex flex-col items-center justify-center border-r border-l border-white border-b border-slate-300 bg-slate-100">
               <span className={`text-[10px] font-medium px-2 py-0 rounded-full ${currentHour === h ? "bg-blue-200 text-blue-800 font-bold" : "bg-slate-200 text-slate-700"}`}>
                 {h}:00
               </span>
@@ -223,6 +225,8 @@ export default function TimelineView({ data, isAdmin }: { data: TableData[], isA
               </div>
             )
           })}
+
+          <CurrentTimeIndicator totalTables={data.length}/>
         </div>
       </div>
 
