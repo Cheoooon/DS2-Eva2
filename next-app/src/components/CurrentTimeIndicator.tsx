@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
+
 
 interface CurrentTimeIndicatorProps {
   totalTables: number
@@ -15,11 +17,17 @@ export function CurrentTimeIndicator({
   endHour = 23,
   testHour,
 }: CurrentTimeIndicatorProps) {
-  const [mounted, setMounted] = useState(false)
+  const searchParams = useSearchParams()
+  const [isMounted, setIsMounted] = useState(false)
   const [currentFloatHour, setCurrentFloatHour] = useState<number>(startHour)
 
+  const dateParam = searchParams.get("date")
+  const currentDate = dateParam 
+  ? new Date(dateParam + "T00:00:00")
+  : new Date()
+
   useEffect(() => {
-    setMounted(true)
+    setIsMounted(true)
 
     const updateTime = () => {
       if (testHour !== undefined) {
@@ -37,7 +45,10 @@ export function CurrentTimeIndicator({
     return () => clearInterval(interval)
   }, [testHour])
 
-  if (!mounted) return null
+
+  const isToday = isMounted && currentDate.toDateString() === new Date().toDateString()
+  if (!isToday) return null
+  if (!isMounted) return null
   if (currentFloatHour < startHour || currentFloatHour >= endHour) return null
 
   const hourBase = Math.floor(currentFloatHour)
@@ -45,6 +56,9 @@ export function CurrentTimeIndicator({
   const minutePercent = (currentFloatHour - hourBase) * 100
 
   const targetCol = hourBase - startHour + 2
+
+  
+
 
   return (
     <div
