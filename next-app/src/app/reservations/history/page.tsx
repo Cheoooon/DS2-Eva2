@@ -10,7 +10,8 @@ import Link from "next/link"
 
 export default async function ReservationHistoryPage(props: { searchParams: Promise<{ date?: string, sort?: string, tableId?: string }> }) {
   const searchParams = await props.searchParams
-  const date = searchParams.date || new Date().toISOString().split('T')[0]
+  const now = new Date()
+  const date = searchParams.date || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
   const tableId = searchParams.tableId
   const sort = (searchParams.sort === 'asc' || searchParams.sort === 'desc') ? searchParams.sort : 'desc'
   

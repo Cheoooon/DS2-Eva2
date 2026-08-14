@@ -15,8 +15,8 @@ export function DashboardDateSelector() {
   const dateParam = searchParams.get("date")
   
   // Si no hay parámetro, calculamos la fecha pero sin depender de horas/milisegundos
-  const currentDate = dateParam 
-    ? new Date(dateParam + "T00:00:00")
+  const currentDate = dateParam
+    ? new Date(parseInt(dateParam.split('-')[0]), parseInt(dateParam.split('-')[1]) - 1, parseInt(dateParam.split('-')[2]))
     : new Date()
 
   useEffect(() => {

@@ -6,7 +6,8 @@ export function FilterBar({ tables }: { tables: { id: string; name: string }[] }
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const date = searchParams.get("date") || new Date().toISOString().split('T')[0]
+  const now = new Date()
+  const date = searchParams.get("date") || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
   const tableId = searchParams.get("tableId") || ""
   const sort = searchParams.get("sort") || "desc"
 

@@ -9,7 +9,8 @@ export default async function DashboardPage(props: { searchParams: Promise<{ dat
   const session = await auth()
   if (!session) redirect("/login")
 
-  const dateStr = searchParams.date || new Date().toISOString().split('T')[0]
+  const now = new Date()
+  const dateStr = searchParams.date || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
   const today = new Date(dateStr)
   const dashboardData = await getDashboardData(today)
 
