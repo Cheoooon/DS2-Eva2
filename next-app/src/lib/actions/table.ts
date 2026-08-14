@@ -56,3 +56,16 @@ export async function getTablesSorted() {
     orderBy: [{ active: 'desc' }, { name: 'asc' }]
   })
 }
+
+export async function createTableAction(formData: FormData) {
+  const name = formData.get("name") as string;
+  const capacity = parseInt(formData.get("capacity") as string);
+  await createTable({ name, capacity });
+}
+
+export async function updateTableAction(id: string, formData: FormData) {
+  const name = formData.get("name") as string;
+  const capacity = parseInt(formData.get("capacity") as string);
+  const active = formData.get("active") === "on";
+  await updateTable(id, { name, capacity, active });
+}

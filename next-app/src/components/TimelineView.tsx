@@ -289,14 +289,14 @@ export default function TimelineView({ data, isAdmin }: { data: TableData[], isA
 
             <div className="grid grid-cols-2 gap-2 text-sm bg-white p-3 rounded border">
               <p>
-                <span className="font-semibold">Capacidad:</span> {selectedTable.capacity}
+                <span className="font-semibold">Capacidad de la mesa:</span> {selectedTable.capacity}
               </p>
               <p>
-                <span className="font-semibold">Estado:</span>{" "}
+                <span className="font-semibold">Estado de la mesa:</span>{" "}
                 {selectedTable.active ? "Activa" : "Inactiva"}
               </p>
               <p>
-                <span className="font-semibold">Reservas Hoy:</span>{" "}
+                <span className="font-semibold">Catidad de reservas:</span>{" "}
                 {selectedTable.reservations.length}
               </p>
               <p>

@@ -18,7 +18,7 @@ export default function UserForm({ initialData, action }: { initialData?: any, a
         } catch (e: any) {
             setError(e.message)
         }
-    }} className="flex flex-col gap-4 max-w-md p-4 border rounded shadow bg-white">
+    }} className="flex flex-col gap-4 max-w-md mx-auto p-4 border rounded shadow bg-white">
         {error && <p className="text-red-500 text-sm bg-red-50 p-2 rounded">{error}</p>}
         <div>
             <label className="text-sm font-medium">Nombre</label>
