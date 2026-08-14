@@ -1,10 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { getUsers, deleteUser } from "@/lib/actions/user"
-import { Trash2 } from "lucide-react"
-import Link from "next/link"
-import { Button } from "@/components/ui/Button"
-
+import UserFilterBar from "@/components/UserFilterBar"
+import UserTable from "@/components/UserTable"
 export default async function AdminUsersPage(props: { searchParams: Promise<{ name?: string, email?: string, role?: string }> }) {
   const session = await auth()
   const searchParams = await props.searchParams
@@ -31,48 +28,9 @@ export default async function AdminUsersPage(props: { searchParams: Promise<{ na
         </Link>
       </div>
 
-      <div className="flex gap-4 mb-6 p-4 bg-slate-50 rounded-lg">
-        <input placeholder="Nombre" defaultValue={searchParams.name} className="border p-2 rounded" />
-        <input placeholder="Email" defaultValue={searchParams.email} className="border p-2 rounded" />
-        <select defaultValue={searchParams.role} className="border p-2 rounded">
-            <option value="">Todos los roles</option>
-            <option value="ADMIN">ADMIN</option>
-            <option value="STAFF">STAFF</option>
-        </select>
-      </div>
+      <UserFilterBar />
 
-      <table className="w-full border-collapse border border-slate-300">
-        <thead>
-          <tr className="bg-slate-100">
-            <th className="border p-2">Nombre</th>
-            <th className="border p-2">Email</th>
-            <th className="border p-2">Rol</th>
-            <th className="border p-2">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map(user => (
-            <tr key={user.id}>
-              <td className="border p-2">{user.name}</td>
-              <td className="border p-2">{user.email}</td>
-              <td className="border p-2">{user.role}</td>
-              <td className="border p-2 flex gap-2">
-                <Link href={`/admin/${user.id}/edit`}>
-                    <Button variant="outline">Editar</Button>
-                </Link>
-                <form action={async () => {
-                  "use server"
-                  await deleteUser(user.id)
-                }}>
-                  <button type="submit" className="p-2 text-slate-500 hover:text-red-600">
-                    <Trash2 size={18} />
-                  </button>
-                </form>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <UserTable users={users} />
     </div>
   )
 }
