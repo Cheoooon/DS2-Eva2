@@ -69,7 +69,7 @@ export default async function ReservationHistoryPage(props: { searchParams: Prom
                   )}
                   
                   <p className="text-xs text-slate-400 mt-3">
-                      Creada: {res.createdAt ? new Date(res.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                      Creada por: {res.user?.name || res.user?.email || 'N/A'} | {res.createdAt ? new Date(res.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                   </p>
                 </div>
 
