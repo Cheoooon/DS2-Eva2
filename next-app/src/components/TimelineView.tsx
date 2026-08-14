@@ -25,7 +25,7 @@ interface TableData {
   reservations: Reservation[]
 }
 
-export default function TimelineView({ data, isAdmin }: { data: TableData[], isAdmin: boolean }) {
+export default function TimelineView({ data, isAdmin, date }: { data: TableData[], isAdmin: boolean, date: Date }) {
   const [currentHour, setCurrentHour] = useState<number | null>(null)
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null)
   const [selectedHour, setSelectedHour] = useState<number | null>(null)
@@ -329,8 +329,8 @@ export default function TimelineView({ data, isAdmin }: { data: TableData[], isA
             ) : (
               selectedTable?.active ? (
                 <Link
-                  href={`/reservations?date=${new Date().toISOString().split("T")[0]}&time=${
-                    selectedHour ? `${selectedHour}:00` : "08:00"
+                  href={`/reservations?date=${date.toISOString().split("T")[0]}&time=${
+                    selectedHour ? `${selectedHour}:00` : ""
                   }&table=${selectedTableId}`}
                   className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-2 text-sm font-medium"
                 >
