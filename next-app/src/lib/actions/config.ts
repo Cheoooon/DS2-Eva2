@@ -11,10 +11,11 @@ export async function getSystemConfig() {
   })
 }
 
-export async function updateSystemConfig(data: { cancellationWindow: number; notificationRetention: number }) {
-  await prisma.systemConfig.update({
+export async function updateSystemConfig(data: { cancellationWindow: number; notificationRetention: number; viewStartHour: number; viewEndHour: number; formStartHour: number; formEndHour: number }) {
+  await prisma.systemConfig.upsert({
     where: { id: "config" },
-    data,
+    update: data,
+    create: { id: "config", ...data },
   })
   revalidatePath("/admin/config")
 }

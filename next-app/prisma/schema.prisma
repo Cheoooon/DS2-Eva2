@@ -65,6 +65,10 @@ model SystemConfig {
   id                    String @id @default("config")
   cancellationWindow    Int    @default(24) // horas
   notificationRetention Int    @default(30) // días
+  viewStartHour         Int    @default(8)
+  viewEndHour           Int    @default(23)
+  formStartHour         Int    @default(8)
+  formEndHour           Int    @default(23)
 }
 
 model Account {

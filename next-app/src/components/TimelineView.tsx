@@ -25,14 +25,14 @@ interface TableData {
   reservations: Reservation[]
 }
 
-export default function TimelineView({ data, isAdmin, date }: { data: TableData[], isAdmin: boolean, date: Date }) {
+export default function TimelineView({ data, isAdmin, date, config }: { data: TableData[], isAdmin: boolean, date: Date, config: any }) {
   const [currentHour, setCurrentHour] = useState<number | null>(null)
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null)
   const [selectedHour, setSelectedHour] = useState<number | null>(null)
   const [hourColWidth, setHourColWidth] = useState(60)
   const gridRef = useRef<HTMLDivElement>(null)
 
-  const hours = Array.from({ length: 15 }, (_, i) => i + 8) // 8:00 a 22:00
+  const hours = Array.from({ length: config.viewEndHour - config.viewStartHour }, (_, i) => i + config.viewStartHour)
 
   // Reservas activas globalmente en la hora seleccionada por el slider
   const activeReservationsAtHour =
@@ -56,7 +56,8 @@ export default function TimelineView({ data, isAdmin, date }: { data: TableData[
     const updateWidth = () => {
       if (gridRef.current) {
         const totalWidth = gridRef.current.clientWidth
-        setHourColWidth(Math.max(50, (totalWidth - 100) / 15))
+        const colWidth = (totalWidth - 100) / hours.length
+        setHourColWidth(Math.max(50, colWidth))
       }
     }
     updateWidth()
@@ -78,59 +79,60 @@ export default function TimelineView({ data, isAdmin, date }: { data: TableData[
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6">      
       <div className="p-4 bg-slate-200 rounded-lg shadow border border-slate-200" ref={gridRef}>
-        <div
-          className="overflow-x-auto relative grid gap-px table-fixed"
-          style={{
-            gridTemplateColumns: `100px repeat(${hours.length}, 1fr)`,
-          }}
-        >
-          <div className="text-[10px] font-bold bg-slate-50 flex items-center justify-center p-1 text-center border-b border-slate-300 w-full h-[40px]">
-            <span className="leading-[1] px-1">
-              {currentHour !== null ? <>{currentHour}:00<br />{currentHour + 1}:00</> : <>Selecciona<br />horario</>}
-            </span>
-          </div>
 
-          <div
-            className="z-10 col-span-15 p-2 bg-slate-100 flex items-center"
+      <div
+        className="overflow-x-auto relative grid gap-px p-4 bg-slate-200 rounded-lg shadow border border-slate-200"
+        style={{
+          gridTemplateColumns: `100px repeat(${hours.length}, 1fr)`,
+        }}
+      >
+        <div className="text-[10px] font-bold bg-slate-50 flex items-center justify-center text-center w-full h-[40px]">
+          <span className="leading-[1]">
+            {currentHour !== null ? <>{currentHour}:00<br />{currentHour + 1}:00</> : <>Selecciona<br />horario</>}
+          </span>
+        </div>
+        <div 
+            className="col-start-2 col-end-[-1] p-2 bg-slate-50 border-b border-slate-300 flex items-center"
             style={{
               paddingLeft: `${hourColWidth / 2 - 8}px`,
               paddingRight: `${hourColWidth / 2 - 8}px`,
             }}
-          >
-            <input
-              type="range"
-              min="8"
-              max="22"
-              value={currentHour ?? 8}
-              onClick={() => {
-                if (currentHour === null) setCurrentHour(8)
-              }}
-              onInput={(e) => {
-                setCurrentHour(parseInt((e.target as HTMLInputElement).value))
-                setSelectedTableId(null)
-                setSelectedHour(null)
-              }}
-              className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${
-                currentHour === null ? "bg-slate-200 slider-no-value" : "bg-blue-500"
-              }`}
-            />
+        >
+          <input
+            type="range"
+            min={config.viewStartHour}
+            max={config.viewEndHour - 1}
+            value={currentHour ?? config.viewStartHour}
+            onClick={() => {
+              if (currentHour === null) setCurrentHour(config.viewStartHour)
+            }}
+            onInput={(e) => {
+              setCurrentHour(parseInt((e.target as HTMLInputElement).value))
+              setSelectedTableId(null)
+              setSelectedHour(null)
+            }}
+            className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${
+              currentHour === null ? "bg-slate-200 slider-no-value" : "bg-blue-500"
+            }`}
+          />
+        </div>
+
+        <div className="bg-slate-50 font-bold p-2 text-center truncate border-b border-slate-300">Mesa</div>
+
+        {hours.map((h) => (
+          <div key={h} data-hour={h} className="z-10 flex flex-col items-center justify-center border-r border-l border-white border-b border-slate-300 bg-slate-100">
+            <span className={`text-[10px] font-medium px-2 py-0 rounded-full ${currentHour === h ? "bg-blue-200 text-blue-800 font-bold" : "bg-slate-200 text-slate-700"}`}>
+              {h}:00
+            </span>
+            <div className="w-4 h-px bg-slate-400 my-0"></div>
+            <span className={`text-[10px] font-medium px-2 py-0 rounded-full ${currentHour === h ? "bg-blue-200 text-blue-800 font-bold" : "bg-slate-200 text-slate-700"}`}>
+              {h + 1}:00
+            </span>
           </div>
+        ))}
 
-          <div className="bg-slate-50 font-bold p-2 text-center truncate border-b border-slate-300">Mesa</div>
-
-          {hours.map((h) => (
-            <div key={h} data-hour={h} className="z-10 flex flex-col items-center justify-center border-r border-l border-white border-b border-slate-300 bg-slate-100">
-              <span className={`text-[10px] font-medium px-2 py-0 rounded-full ${currentHour === h ? "bg-blue-200 text-blue-800 font-bold" : "bg-slate-200 text-slate-700"}`}>
-                {h}:00
-              </span>
-              <div className="w-4 h-px bg-slate-400 my-0"></div>
-              <span className={`text-[10px] font-medium px-2 py-0 rounded-full ${currentHour === h ? "bg-blue-200 text-blue-800 font-bold" : "bg-slate-200 text-slate-700"}`}>
-                {h + 1}:00
-              </span>
-            </div>
-          ))}
 
           {data.map((table, tableIndex) => {
             const rowIndex = tableIndex + 3
@@ -156,56 +158,9 @@ export default function TimelineView({ data, isAdmin, date }: { data: TableData[
                   </div>
                 </div>
 
+                {/* Celdas vacías */}
                 {hours.map((h, i) => {
-                  const resAtStart = table.reservations.find((r) => r.startHour === h && r.status !== 'CANCELLED' && r.status !== 'MOVED')
-                  const isCoveredByRes = table.reservations.some(
-                    (r) => h >= r.startHour && h < r.endHour && r.status !== 'CANCELLED' && r.status !== 'MOVED'
-                  )
-
-                  if (resAtStart) {
-                    const duration = Math.max(1, resAtStart.endHour - resAtStart.startHour)
-                    const colStart = h - 8 + 2
-                    
-                    const isSelected =
-                      selectedTableId === table.id &&
-                      selectedHour !== null && selectedHour >= resAtStart.startHour &&
-                      selectedHour < resAtStart.endHour
-
-                    return (
-                      <div
-                        key={resAtStart.id}
-                        className={`flex items-center justify-center p-0.5 cursor-pointer min-w-0 overflow-hidden ${!table.active ? "opacity-50" : ""}`}
-                        style={{
-                          gridRow: rowIndex,
-                          gridColumn: `${colStart} / span ${duration}`,
-                        }}
-                        onClick={(e) => {
-                          if (!table.active) return
-                          e.stopPropagation()
-                          setSelectedTableId(table.id)
-                          setSelectedHour(resAtStart.startHour)
-                          setCurrentHour(null)
-                        }}
-                      >
-                        <div
-                          className={`w-full h-full text-xs rounded flex items-center justify-center font-semibold min-w-0 overflow-hidden transition-all ${
-                              isSelected
-                              ? "ring-2 ring-blue-500 ring-inset shadow-md"
-                              : ""
-                          } ${STATUS_COLORS[resAtStart.status as Status]}`}
-                        >
-                          <span className="truncate px-1 block w-full text-center">
-                            {resAtStart.customerName}
-                          </span>
-                        </div>
-                      </div>
-                    )
-                  }
-
-                  if (isCoveredByRes) return null
-
                   const isSlotSelected = selectedTableId === table.id && selectedHour === h
-
                   return (
                     <div
                       key={`${table.id}-${h}`}
@@ -222,11 +177,60 @@ export default function TimelineView({ data, isAdmin, date }: { data: TableData[
                     />
                   )
                 })}
+
+                {/* Reservas visibles */}
+                {table.reservations
+                  .filter(r => r.status !== 'CANCELLED' && r.status !== 'MOVED')
+                  .map(res => {
+                    const displayStart = Math.max(res.startHour, config.viewStartHour);
+                    const displayEnd = Math.min(res.endHour, config.viewEndHour);
+                    
+                    if (displayStart >= displayEnd) return null;
+
+                    const duration = displayEnd - displayStart;
+                    const colStart = displayStart - config.viewStartHour + 2;
+
+                    const isSelected =
+                      selectedTableId === table.id &&
+                      selectedHour !== null && selectedHour >= res.startHour &&
+                      selectedHour < res.endHour
+
+                    return (
+                      <div
+                        key={res.id}
+                        className={`z-10 flex items-center justify-center p-0.5 cursor-pointer min-w-0 overflow-hidden ${!table.active ? "opacity-50" : ""}`}
+                        style={{
+                          gridRow: rowIndex,
+                          gridColumn: `${colStart} / span ${duration}`,
+                        }}
+                        onClick={(e) => {
+                          if (!table.active) return
+                          e.stopPropagation()
+                          setSelectedTableId(table.id)
+                          setSelectedHour(res.startHour)
+                          setCurrentHour(null)
+                        }}
+                      >
+                        <div
+                          className={`w-full h-full text-xs rounded flex items-center justify-center font-semibold min-w-0 overflow-hidden transition-all ${
+                              isSelected
+                              ? "ring-2 ring-blue-500 ring-inset shadow-md"
+                              : ""
+                          } ${STATUS_COLORS[res.status as Status]}`}
+                        >
+                          <span className="truncate px-1 block w-full text-center">
+                            {res.customerName}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })
+                }
               </div>
             )
           })}
 
-          <CurrentTimeIndicator totalTables={data.length}/>
+          <CurrentTimeIndicator totalTables={data.length} startHour={config.viewStartHour} endHour={config.viewEndHour} />
         </div>
       </div>
 

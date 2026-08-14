@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { Card } from "@/components/ui/Card"
 import ReservationForm from "@/components/ReservationForm"
+import { getSystemConfig } from "@/lib/actions/config"
 import { getTablesSorted } from "@/lib/actions/table"
 import Link from "next/link"
 
@@ -11,8 +12,7 @@ export default async function ReservationsPage(props: { searchParams: Promise<{ 
   const session = await auth()
   if (!session) redirect("/login")
   
-  const tables = await getTablesSorted()
-
+  const [tables, config] = await Promise.all([getTablesSorted(), getSystemConfig()])
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
@@ -29,6 +29,7 @@ export default async function ReservationsPage(props: { searchParams: Promise<{ 
           initialDate={searchParams.date}
           initialTableId={searchParams.table}
           initialTime={searchParams.time}
+          config={config}
         />
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { getReservationById, updateReservation } from "@/lib/actions/reservation"
 import { getTables } from "@/lib/actions/table"
+import { getSystemConfig } from "@/lib/actions/config"
 import ReservationForm from "@/components/ReservationForm"
 import { redirect, notFound } from "next/navigation"
 import { z } from "zod"
@@ -12,9 +13,10 @@ const editReservationSchema = reservationSchema.extend({
 
 export default async function EditReservationPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params
-  const [reservation, tables] = await Promise.all([
+  const [reservation, tables, config] = await Promise.all([
       getReservationById(params.id),
-      getTables()
+      getTables(),
+      getSystemConfig()
   ])
   
   if (!reservation) notFound()
@@ -34,7 +36,7 @@ export default async function EditReservationPage(props: { params: Promise<{ id:
             tables={tables}
             initialData={{ ...reservation, status: reservation.status as any, notes: reservation.notes || undefined } as any}
             onSubmit={onSubmit}
-            buttonLabel="Guardar Cambios"
+        config={config}
         />
       </div>
     </div>

@@ -24,8 +24,6 @@ export interface TableOption {
   status?: "available" | "full" | "inactive"
 }
 
-const AVAILABLE_HOURS = Array.from({ length: 15 }, (_, i) => i + 8)
-
 export default function ReservationForm({ 
   tables, 
   userId, 
@@ -34,17 +32,21 @@ export default function ReservationForm({
   initialTime,
   initialData,
   onSubmit,
-  buttonLabel = "Confirmar Reserva"
+  buttonLabel = "Confirmar Reserva",
+  config
 }: { 
   tables: TableOption[]; 
   userId: string; 
   initialDate?: string; 
   initialTableId?: string;
   initialTime?: string;
-  initialData?: ReservationFormData & { id: string };
-  onSubmit?: (data: ReservationFormData) => Promise<void>;
+  initialData?: any;
+  onSubmit?: (data: any) => Promise<void>;
   buttonLabel?: string;
+  config: any;
 }) {
+  const AVAILABLE_HOURS = Array.from({ length: config.formEndHour - config.formStartHour }, (_, i) => i + config.formStartHour)
+
   const [selectedDate, setSelectedDate] = useState(
     initialData?.date || initialDate || new Date().toISOString().split('T')[0]
   )

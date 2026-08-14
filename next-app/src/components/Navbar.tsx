@@ -15,6 +15,7 @@ export default async function Navbar() {
         <Link href="/reservations" className="hover:text-slate-900 transition-colors">Reservas</Link>
         {(role === "STAFF" || role === "ADMIN") && <Link href="/tables" className="hover:text-slate-900 transition-colors">Mesas</Link>}
         {role === "ADMIN" && <Link href="/admin" className="hover:text-slate-900 transition-colors">Usuarios</Link>}
+        {role === "ADMIN" && <Link href="/admin/config" className="hover:text-slate-900 transition-colors">Config</Link>}
       </div>
       <div className="flex items-center gap-4 text-sm text-slate-500">
         <span>{session.user?.email}</span>
