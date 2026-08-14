@@ -1,29 +1,24 @@
-# Schema Design
+# Modelo de Datos (Schema)
 
-## Models
-
-### Table
-- `id`: String (Primary Key, CUID)
-- `name`: String (Default: "mesa-")
-- `capacity`: Int
-- `active`: Boolean (Default: true)
-- `reservations`: Reservation[]
-- `deletedAt`: DateTime?
-
-### Reservation
-- `id`: String (Primary Key, CUID)
-- `userId`: String
-- `tableId`: String
-- `startTime`: DateTime
-- `endTime`: DateTime
-- `status`: Status (PENDING, CONFIRMED, CANCELLED, COMPLETED)
-- `customerName`: String
-- `occupants`: Int
-- `notes`: String?
-- `deletedAt`: DateTime?
+## Entidades Principales
 
 ### User
-- `id`: String (Primary Key, CUID)
-- `email`: String (Unique)
-- `role`: Role (CLIENT, STAFF, ADMIN)
-- `password`: String
+Representa a los usuarios del sistema.
+- `role`: `ADMIN`, `STAFF`, `CLIENT`.
+
+### Table
+Representa la infraestructura del restaurante.
+- `capacity`: Capacidad de comensales.
+- `active`: Estado de la mesa.
+
+### Reservation
+El núcleo del sistema.
+- `date`: `DD-MM-YYYY`.
+- `startHour`, `endHour`: Horario.
+- `status`: `PENDING`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`, `MOVED`.
+- `table`: Relación con la mesa asignada.
+
+### SystemConfig
+Configuración global del sistema.
+
+*(Nota: Referirse siempre a `next-app/prisma/schema.prisma` para la estructura exacta).*

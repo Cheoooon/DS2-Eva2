@@ -1,16 +1,16 @@
-# Architecture
+# Arquitectura del Sistema: Sabor Gourmet
 
-## Overview
-- Client-Server: Next.js 16 App Router.
-- Authentication: Auth.js v5 (NextAuth) with Prisma Adapter.
-- Database: PostgreSQL (Prod) / SQLite (Dev) + Prisma ORM.
-- Trazability: Soft deletes via `deletedAt` fields.
+## Descripción General
+Sistema de gestión integral para restaurante, enfocado en el manejo de mesas y reservas, con control de acceso basado en roles (RBAC).
 
-## Auth Architecture (Auth.js v5)
-The authentication system is split to ensure performance and edge-compatibility:
-- `auth.config.ts`: Contains providers and route protection logic (Edge-compatible).
-- `lib/auth.ts`: Main Auth.js instance using Prisma Adapter (Node.js runtime).
+## Stack Tecnológico
+- **Framework**: [Next.js](https://nextjs.org/) (App Router)
+- **Base de Datos**: SQLite (Dev) / PostgreSQL (Prod) gestionado por [Prisma ORM](https://www.prisma.io/)
+- **Autenticación**: [NextAuth.js](https://next-auth.js.org/) (Auth.js v5)
+- **UI**: React, Tailwind CSS, Radix UI.
 
-## Modules
-- `Reservations`: Optimized flow with date-based filtering and time presets.
-- `RBAC`: Admin/Staff/Client roles managed through JWT claims via Prisma data.
+## Estructura de Capas
+1. **Frontend (App Router)**: Interfaz de usuario (Staff/Admin).
+2. **Backend (Server Actions/API Routes)**: Lógica de negocio, validaciones.
+3. **ORM (Prisma)**: Interacción con la base de datos.
+4. **Auth Layer**: Middleware de protección de rutas mediante roles definidos en la sesión.

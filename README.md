@@ -3,7 +3,7 @@
 Sistema de gestión de reservas en tiempo real para "Sabor Gourmet".
 
 ## 🎯 Objetivo
-Plataforma eficiente para la gestión de mesas con control de acceso granular por roles (`Client`, `Staff`, `Admin`).
+Plataforma eficiente para la gestión de mesas con control de acceso granular por roles (`Staff`, `Admin`).
 
 ---
 
@@ -16,12 +16,10 @@ Plataforma eficiente para la gestión de mesas con control de acceso granular po
 ---
 
 ## 📚 Documentación
-Revisar la carpeta `/docs` para detalles técnicos:
-- `architecture.md`: Diseño del sistema.
-- `schema_design.md`: Modelos Prisma.
-- `settings.md`: Reglas de negocio y notificaciones.
-- `api_design.md`: Endpoints y contratos.
-- `use_cases.md`: Casos de uso.
+- `architecture.md`: Arquitectura y stack técnico.
+- `schema_design.md`: Modelo de datos (Prisma).
+- `user_stories.md`: Casos de uso y requerimientos.
+- `workflow.md`: Flujos de trabajo y procesos.
 
 ---
 

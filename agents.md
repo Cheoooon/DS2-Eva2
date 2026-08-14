@@ -1,20 +1,33 @@
-# Agents
+# Agent Constraints: Sabor Gourmet
 
-## Roles
-- **scout**: Investigative tasks, codebase research.
-- **builder**: Implementation tasks, code edits.
-- **reviewer**: Code reviews, quality assurance.
+Instrucciones críticas para operar en este codebase.
 
-## Rules of Engagement
-- **Context First**: MUST read critical docs (`docs/architecture.md`, `docs/schema_design.md`) *before* acting in any session.
-- **Communication Style**: MUST use `caveman` style: brief, technical, no filler.
-- **Task Structure**: All tasks MUST include:
-  - **Goal**: What are we accomplishing?
-  - **Target Files**: Which files change?
-  - **Change**: Step-by-step logic.
-  - **Acceptance Criteria**: Observable result.
-- **Safety**: NEVER run formatters, linters, or test suites until final verification.
-- **Handoff**: After task completion, explicitly state what remains (if anything) and update `todo`.
+## Convenciones de Código
+- **Soft Deletes**: Todas las entidades (`User`, `Table`, `Reservation`) utilizan `deletedAt`. NUNCA realices `prisma.model.delete()`. SIEMPRE utiliza:
+  ```ts
+  prisma.model.update({ where: { id }, data: { deletedAt: new Date() } })
+  ```
+- **Rutas y Auth**:
+  - Rutas bajo `next-app/src/app`.
+  - Rutas `/admin/*` y `/staff/*` protegidas por `middleware` (validación de sesión y roles).
+  - Auth: Usar `auth()` de NextAuth v5 en Server Actions para obtener sesión/rol.
+- **UI/Componentes**:
+  - Ubicación: `next-app/src/components/ui`.
+  - Estilos: Tailwind CSS.
+  - Prefiere componentes existentes antes de crear nuevos.
 
-## Technical Constraints (Knowledge Base)
-- **Tailwind CSS v4**: Utiliza configuración simplificada (a menudo solo requiere importar `@import "tailwindcss";` en el CSS principal, sin `tailwind.config.js` complejo). Verificar siempre con `Context7` antes de realizar configuraciones de Tailwind.
+## Reglas de Negocio y Lógica
+- **Validación de Reservas**: Antes de `create` o `update`:
+  1. Verificar disponibilidad de mesa (`capacity` >= `occupants`).
+  2. Verificar colisiones horarias (`startHour`, `endHour`) en la misma mesa y fecha.
+  3. Validar `status` según flujo: `PENDING` -> `IN_PROGRESS` -> `COMPLETED`/`CANCELLED`.
+- **SystemConfig**: La configuración global (ventanas de cancelación, retención) debe consultarse desde `SystemConfig` en la DB, no hardcodear valores.
+- **Roles**:
+  - `ADMIN`: Acceso total.
+  - `STAFF`: Acceso operativo (Reservas, mesas).
+  - `CLIENT`: Acceso a visualización (o solo lectura).
+
+## Flujo de Trabajo del Agente
+1. **Antes de editar**: Leer `docs/schema_design.md` y `docs/workflow.md`.
+2. **Contexto**: Si se solicita cambio en reservas, revisar `next-app/prisma/schema.prisma` para impactos en cascada.
+3. **Validación**: Cualquier cambio en lógica de reserva requiere smoke test manual: crear/editar/cancelar reserva y verificar cambios en `dev.db`.
