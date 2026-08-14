@@ -17,7 +17,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ dat
   const [dashboardData, config] = await Promise.all([getDashboardData(today), getSystemConfig()])
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold mb-2">Panel Principal</h1>
       <p className="mb-6 text-slate-600">Bienvenido, {session.user?.name || session.user?.email}</p>
       

@@ -83,7 +83,7 @@ export default function TimelineView({ data, isAdmin, date, config }: { data: Ta
       <div className="p-4 bg-slate-200 rounded-lg shadow border border-slate-200" ref={gridRef}>
 
       <div
-        className="overflow-x-auto relative grid gap-px p-4 bg-slate-200 rounded-lg shadow border border-slate-200"
+        className="overflow-x-auto relative grid gap-px bg-slate-200 rounded-lg shadow border border-slate-200"
         style={{
           gridTemplateColumns: `100px repeat(${hours.length}, 1fr)`,
         }}
@@ -93,33 +93,62 @@ export default function TimelineView({ data, isAdmin, date, config }: { data: Ta
             {currentHour !== null ? <>{currentHour}:00<br />{currentHour + 1}:00</> : <>Selecciona<br />horario</>}
           </span>
         </div>
-        <div 
-            className="col-start-2 col-end-[-1] p-2 bg-slate-50 border-b border-slate-300 flex items-center"
-            style={{
-              paddingLeft: `${hourColWidth / 2 - 8}px`,
-              paddingRight: `${hourColWidth / 2 - 8}px`,
-            }}
-        >
-          <input
-            type="range"
-            min={config.viewStartHour}
-            max={config.viewEndHour - 1}
-            value={currentHour ?? config.viewStartHour}
-            onClick={() => {
-              if (currentHour === null) setCurrentHour(config.viewStartHour)
-            }}
-            onInput={(e) => {
-              setCurrentHour(parseInt((e.target as HTMLInputElement).value))
-              setSelectedTableId(null)
-              setSelectedHour(null)
-            }}
-            className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${
-              currentHour === null ? "bg-slate-200 slider-no-value" : "bg-blue-500"
-            }`}
-          />
-        </div>
 
-        <div className="bg-slate-50 font-bold p-2 text-center truncate border-b border-slate-300">Mesa</div>
+        <div className="col-start-2 col-end-[-1] row-start-1 bg-white z-0" />
+        <div className="col-start-2 col-end-[-1] row-start-1 self-center h-1.5 bg-slate-300 rounded-full pointer-events-none z-0 my-auto" />
+
+        {currentHour !== null && (() => {
+          const activeIndex = currentHour - config.viewStartHour;
+          const activeCol = activeIndex + 2; // +2 por la columna inicial de 100px
+
+          return (
+            <>
+              {activeIndex > 0 && (
+                <div 
+                  className="col-start-2 row-start-1 self-center h-1.5 bg-blue-500 rounded-l-full pointer-events-none z-0 my-auto -mr-px transition-colors duration-150 peer-active:bg-blue-600"
+                  style={{ gridColumnEnd: activeCol }}
+                />
+              )}
+
+              <div 
+                className={`row-start-1 self-center h-1.5 bg-blue-500 pointer-events-none z-0 my-auto w-1/2 justify-self-start transition-colors duration-150 peer-active:bg-blue-600 ${
+                  activeIndex === 0 ? "rounded-l-full" : ""
+                }`}
+                style={{ gridColumnStart: activeCol }}
+              />
+            </>
+          );
+        })()}
+        
+        {currentHour !== null && (
+          <div 
+            className="row-start-1 flex items-center justify-center pointer-events-none z-10"
+            style={{
+              gridColumnStart: (currentHour - config.viewStartHour) + 2 
+            }}
+          >
+            <div className="w-5 h-5 bg-white border-2 border-blue-600 rounded-full shadow-md" />
+          </div>
+        )}
+        <input
+          type="range"
+          min={config.viewStartHour}
+          max={config.viewEndHour - 1}
+          value={currentHour ?? config.viewStartHour}
+          onClick={() => {
+            if (currentHour === null) setCurrentHour(config.viewStartHour)
+          }}
+          onInput={(e) => {
+            setCurrentHour(parseInt((e.target as HTMLInputElement).value))
+            setSelectedTableId(null)
+            setSelectedHour(null)
+          }}
+          className="col-start-2 col-end-[-1] row-start-1 w-full h-full opacity-0 cursor-pointer z-20"
+        />
+
+        
+
+        <div className="bg-slate-50 font-bold p-2 text-center truncate border-slate-300">Mesa</div>
 
         {hours.map((h) => (
           <div key={h} data-hour={h} className="z-10 flex flex-col items-center justify-center border-r border-l border-white border-b border-slate-300 bg-slate-100">
@@ -160,6 +189,11 @@ export default function TimelineView({ data, isAdmin, date, config }: { data: Ta
 
                 {/* Celdas vacías */}
                 {hours.map((h, i) => {
+                  const isOccupied = table.reservations.some(r => 
+                    r.status !== 'CANCELLED' && r.status !== 'MOVED' && h >= r.startHour && h < r.endHour
+                  );
+                  if (isOccupied) return null;
+
                   const isSlotSelected = selectedTableId === table.id && selectedHour === h
                   return (
                     <div
