@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import Link from "next/link"
 import { DashboardDateSelector } from "@/components/DashboardDateSelector"
 import TimelineView from "@/components/TimelineView"
 import { getDashboardData } from "@/lib/actions/dashboard"
@@ -22,6 +23,11 @@ export default async function DashboardPage(props: { searchParams: Promise<{ dat
       <DashboardDateSelector />
       
       <TimelineView data={dashboardData} isAdmin={session.user?.role === 'ADMIN'} date={today} />
+      <div className="mt-8 text-center">
+        <Link href={`/reservations/history?date=${dateStr}`} className="text-sm text-slate-500 hover:text-slate-800 underline underline-offset-4">
+          Ver historial de reservas para este día
+        </Link>
+      </div>
     </div>
   )
 }
