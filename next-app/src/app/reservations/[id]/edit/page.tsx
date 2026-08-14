@@ -26,15 +26,17 @@ export default async function EditReservationPage(props: { params: Promise<{ id:
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Editar Reserva: {reservation.customerName}</h1>
-      <ReservationForm 
-          userId={reservation.userId}
-          tables={tables}
-          initialData={{ ...reservation, status: reservation.status as any, notes: reservation.notes || undefined } as any}
-          onSubmit={onSubmit}
-          buttonLabel="Guardar Cambios"
-      />
+      <div className="max-w-2xl mx-auto">
+        <ReservationForm 
+            userId={reservation.userId}
+            tables={tables}
+            initialData={{ ...reservation, status: reservation.status as any, notes: reservation.notes || undefined } as any}
+            onSubmit={onSubmit}
+            buttonLabel="Guardar Cambios"
+        />
+      </div>
     </div>
   )
 }
