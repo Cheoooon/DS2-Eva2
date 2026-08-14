@@ -11,7 +11,7 @@ export async function getDashboardData(date: Date) {
       reservations: {
         where: {
           date: dateStr,
-          status: { not: Status.CANCELLED }
+          status: { notIn: [Status.CANCELLED, Status.MOVED] }
         }
       }
     },
