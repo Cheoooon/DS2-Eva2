@@ -1,81 +1,72 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { getUsers, updateUserRole, deleteUser, createUser } from "@/lib/actions/user"
-import { Role } from "@/lib/prisma"
+import { getUsers, deleteUser } from "@/lib/actions/user"
+import { Trash2 } from "lucide-react"
+import Link from "next/link"
 import { Button } from "@/components/ui/Button"
 
-export default async function AdminUsersPage() {
+export default async function AdminUsersPage(props: { searchParams: Promise<{ name?: string, email?: string, role?: string }> }) {
   const session = await auth()
+  const searchParams = await props.searchParams
   
   if (!session || session.user?.role !== "ADMIN") {
     redirect("/dashboard")
   }
 
-  const users = await getUsers()
+  const allUsers = await getUsers()
+  
+  // Filtros en memoria (ponytail: si la lista crece, mover a query de BD)
+  const users = allUsers.filter(u => 
+    (!searchParams.name || u.name?.toLowerCase().includes(searchParams.name.toLowerCase())) &&
+    (!searchParams.email || u.email.toLowerCase().includes(searchParams.email.toLowerCase())) &&
+    (!searchParams.role || u.role === searchParams.role)
+  )
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Administrar Usuarios</h1>
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Administrar Usuarios</h1>
+        <Link href="/admin/new">
+            <Button>Nuevo Usuario</Button>
+        </Link>
+      </div>
 
-      <div className="mb-8 p-4 border border-slate-300 rounded-lg bg-white shadow-sm">
-        <h2 className="text-xl font-semibold mb-4">Crear Nuevo Usuario</h2>
-        <form action={createUser} className="flex flex-wrap gap-4 items-end">
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Nombre</label>
-            <input name="name" type="text" required className="border border-slate-300 rounded p-2" />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Email</label>
-            <input name="email" type="email" required className="border border-slate-300 rounded p-2" />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Contraseña</label>
-            <input name="password" type="password" required minLength={6} className="border border-slate-300 rounded p-2" />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Rol</label>
-            <select name="role" className="border border-slate-300 rounded p-2 h-[42px]">
-              <option value="CLIENT">CLIENT</option>
-              <option value="STAFF">STAFF</option>
-              <option value="ADMIN">ADMIN</option>
-            </select>
-          </div>
-          <Button type="submit" className="h-[42px]">Crear Usuario</Button>
-        </form>
+      <div className="flex gap-4 mb-6 p-4 bg-slate-50 rounded-lg">
+        <input placeholder="Nombre" defaultValue={searchParams.name} className="border p-2 rounded" />
+        <input placeholder="Email" defaultValue={searchParams.email} className="border p-2 rounded" />
+        <select defaultValue={searchParams.role} className="border p-2 rounded">
+            <option value="">Todos los roles</option>
+            <option value="ADMIN">ADMIN</option>
+            <option value="STAFF">STAFF</option>
+        </select>
       </div>
 
       <table className="w-full border-collapse border border-slate-300">
         <thead>
-          <tr>
-            <th className="border p-2 border-slate-300">Email</th>
-            <th className="border p-2 border-slate-300">Rol</th>
-            <th className="border p-2 border-slate-300">Acciones</th>
+          <tr className="bg-slate-100">
+            <th className="border p-2">Nombre</th>
+            <th className="border p-2">Email</th>
+            <th className="border p-2">Rol</th>
+            <th className="border p-2">Acciones</th>
           </tr>
         </thead>
         <tbody>
           {users.map(user => (
             <tr key={user.id}>
-              <td className="border p-2 border-slate-300">{user.email}</td>
-              <td className="border p-2 border-slate-300">
-                <form action={async (formData) => {
-                  "use server"
-                  const role = formData.get("role") as Role
-                  await updateUserRole(user.id, role)
-                }}>
-                  <select name="role" defaultValue={user.role} className="border p-1">
-                    <option value="CLIENT">CLIENT</option>
-                    <option value="STAFF">STAFF</option>
-                    <option value="ADMIN">ADMIN</option>
-                  </select>
-                  <Button type="submit" className="ml-2 py-1">Actualizar</Button>
-                </form>
-              </td>
-              <td className="border p-2 border-slate-300">
+              <td className="border p-2">{user.name}</td>
+              <td className="border p-2">{user.email}</td>
+              <td className="border p-2">{user.role}</td>
+              <td className="border p-2 flex gap-2">
+                <Link href={`/admin/${user.id}/edit`}>
+                    <Button variant="outline">Editar</Button>
+                </Link>
                 <form action={async () => {
                   "use server"
                   await deleteUser(user.id)
                 }}>
-                  <Button type="submit" className="bg-red-500 hover:bg-red-600">Eliminar</Button>
+                  <button type="submit" className="p-2 text-slate-500 hover:text-red-600">
+                    <Trash2 size={18} />
+                  </button>
                 </form>
               </td>
             </tr>

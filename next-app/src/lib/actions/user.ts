@@ -38,3 +38,15 @@ export async function deleteUser(id: string) {
   })
   revalidatePath("/admin")
 }
+
+export async function getUserById(id: string) {
+  return await prisma.user.findUnique({ where: { id } })
+}
+
+export async function updateUser(id: string, data: { name: string; email: string; role: Role }) {
+  await prisma.user.update({
+    where: { id },
+    data
+  })
+  revalidatePath("/admin")
+}
