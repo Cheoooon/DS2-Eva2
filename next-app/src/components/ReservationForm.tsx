@@ -264,7 +264,7 @@ export default function ReservationForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmitHandler)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmitHandler)} className="flex flex-col gap-4 p-4 border rounded shadow bg-white">
       {error && <p className="text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200">{error}</p>}
       {success && <p className="text-green-600 text-sm bg-green-50 p-3 rounded-lg border border-green-200">Reserva creada con éxito.</p>}
       

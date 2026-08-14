@@ -13,7 +13,7 @@ export default async function EditTablePage(props: { params: Promise<{ id: strin
     }
 
     return (
-        <div className="p-6">
+        <div className="p-6 max-w-2xl mx-auto">
             <h1 className="text-2xl font-bold mb-6">Editar Mesa</h1>
             <TableForm initialData={table} action={handleUpdate} />
         </div>
