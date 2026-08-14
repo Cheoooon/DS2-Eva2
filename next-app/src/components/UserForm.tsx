@@ -3,14 +3,23 @@ import { Button } from "./ui/Button"
 import { Input } from "./ui/Input"
 import { useRouter } from "next/navigation"
 
+import { useState } from "react"
+
 export default function UserForm({ initialData, action }: { initialData?: any, action: any }) {
   const router = useRouter()
+  const [error, setError] = useState<string | null>(null)
 
   return (
     <form action={async (formData) => {
-        await action(formData)
-        router.push("/admin")
+        setError(null)
+        try {
+            await action(formData)
+            router.push("/admin")
+        } catch (e: any) {
+            setError(e.message)
+        }
     }} className="flex flex-col gap-4 max-w-md p-4 border rounded shadow bg-white">
+        {error && <p className="text-red-500 text-sm bg-red-50 p-2 rounded">{error}</p>}
         <div>
             <label className="text-sm font-medium">Nombre</label>
             <Input name="name" defaultValue={initialData?.name} required />

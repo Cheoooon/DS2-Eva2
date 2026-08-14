@@ -1,7 +1,11 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { getUsers } from "@/lib/actions/user"
+import Link from "next/link"
+import { Button } from "@/components/ui/Button"
 import UserFilterBar from "@/components/UserFilterBar"
 import UserTable from "@/components/UserTable"
+
 export default async function AdminUsersPage(props: { searchParams: Promise<{ name?: string, email?: string, role?: string }> }) {
   const session = await auth()
   const searchParams = await props.searchParams
